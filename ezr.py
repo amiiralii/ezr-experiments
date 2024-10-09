@@ -202,6 +202,24 @@ def norm(self:NUM, x) -> number:
 def ent(self:SYM) -> number:
   return - sum(n/self.n * log(n/self.n,2) for n in self.has.values())
 
+@of("Generate New Value based on RRP.")
+def generate_new_value(self:NUM, r1:row, r2:row, r3:row) -> float:
+    vals = [r1[self.at], r2[self.at], r3[self.at]]
+    if "?" in vals:
+      vals.remove("?")
+      if vals == []: return round(self.mid,3)
+      if len(vals) != 3: return vals[0]
+    return round( float(r1[self.at]) + 0.8 * abs(float(r2[self.at]) - float(r3[self.at])) , 3)
+
+@of("Generate new value based on diversity.")
+def generate_new_value(self:SYM, r1:row, r2:row, r3:row) -> float:
+    vals = [r1[self.at], r2[self.at], r3[self.at]]
+    if "?" in vals:
+      vals.remove("?")
+      if vals == []: return round(self.mid,3)
+      if len(vals) != 3: return vals[0]
+    return r1[self.at] if r1[self.at] == r2[self.at] or r1[self.at] == r3[self.at] else (r2[self.at] if r3[self.at] == r2[self.at] else (random.choice([r1[self.at], r2[self.at], r3[self.at]])) )
+
 # ### Add 
 @of("add COL with many values.")
 def adds(self:COL,  src) -> COL:
