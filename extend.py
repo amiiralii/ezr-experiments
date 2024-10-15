@@ -11,7 +11,12 @@ from synthesize import upsampling
 ## Goal: Regression
 ## Metric: Sum of Absolute Value of Standardized Residuals : Sum( abs( (real-pred)/sd ) )
 def regression(dataset, repeats):
+  loading_time, lr_time, lgbm_time = 0, 0, 0
+  asIs_time, midleaf_time, k1_time, k3_time, k5_time = 0, 0, 0, 0, 0
+
+  t1 = time.time()
   d = DATA().adds(csv(dataset))
+  loading_time = time.time()-t1
   somes  = []
   lrstat  = stats.SOME(txt='LR')
   lgbmstat  = stats.SOME(txt='LGBM')
@@ -27,24 +32,47 @@ def regression(dataset, repeats):
   predictions["col"] = ["actual", "asIs", "mid-leaf", "k1", "k3", "k5"]
 
   saving_preds = True
+  
   for _ in range(repeats):    
     random.shuffle(d.rows)
     for train,test in xval(d.rows):
-      lrstat, lgbmstat, bp = baseline.calc_baseline2(train, test, [c.txt for c in d.cols.all], lrstat, lgbmstat, saving_preds)
+      lrstat, lgbmstat, bp , lr_time, lgbm_time= baseline.calc_baseline2(train, test, [c.txt for c in d.cols.all], lrstat, lgbmstat, saving_preds, lr_time, lgbm_time)
       if saving_preds: bl_predictions = bp
-
+      t0 = time.time()
       cluster = d.cluster(train)
+      t1 = time.time()
+      midleaf_time += t1 - t0
+      k1_time += t1 - t0
+      k3_time += t1 - t0
+      k5_time += t1 - t0
+      t1 = time.time()
       dumb_rows = d.clone(random.choices(train, k=the.Stop))
+      t2 = time.time()
+      asIs_time += t2-t1
+
       for index, want in enumerate(test):
+        t0 = time.time()
         leaf = cluster.leaf(d, want)
         rows = leaf.data.rows
+        t1 = time.time()
+        midleaf_time += t1 - t0
+        k1_time += t1 - t0
+        k3_time += t1 - t0
+        k5_time += t1 - t0
+
         mid1  = leaf.data.mid()
         dumb_mid = dumb_rows.mid()
 
-        k_preds  = [ d.predict(want, rows, k=k) for k in [1,3,5] ]
+        k_preds  = []
+        for k in [1,3,5]:
+          t0 = time.time()
+          k_preds.append( d.predict(want, rows, k=k) )
+          t1 = time.time()
+          if k==1: k1_time += t1-t0
+          if k==3: k3_time += t1-t0
+          if k==5: k5_time += t1-t0
         
         add_all = True
-        row_pred = {}
         for k_pred, kstat in zip(k_preds, kss):
           for at,pred in k_pred.items():
             sd = d.cols.all[at].div()
@@ -58,15 +86,28 @@ def regression(dataset, repeats):
             if saving_preds: predictions[col].append(round(pred, 2))
             
             if add_all:
-              mid1s.add( abs(want[at] - mid1[at])/sd)
-              dumb.add( abs(want[at] - dumb_mid[at])/sd)
+              mid1s.add( (want[at] - mid1[at])/sd)
+              dumb.add( (want[at] - dumb_mid[at])/sd)
 
-            kstat.add(   abs(want[at] - pred   )/sd)
+            kstat.add(   (want[at] - pred   )/sd)
           add_all = False
       saving_preds = False
 
   somes += [lrstat]
   somes += [lgbmstat]
+  
+  ## Export Run Times
+  with open(f"reg/res/low-res/times/{dataset.split('/')[-1]}", 'w') as csv_file:  
+    writer = cc.writer(csv_file)
+    writer.writerow(["loading_time:", round(loading_time,2)])
+    writer.writerow(["asIs_time:", round(asIs_time,2)])
+    writer.writerow(["lr_time:", round(lr_time,2)])
+    writer.writerow(["midleaf_time:", round(midleaf_time,2)])
+    writer.writerow(["k1_time:", round(k1_time,2)])
+    writer.writerow(["k3_time:", round(k3_time,2)])
+    writer.writerow(["k5_time:", round(k5_time,2)])
+    writer.writerow(["lgbm_time:", round(lgbm_time,2)])
+
   ## Export Predictions
   with open(f"reg/res/low-res/predictions/{dataset.split('/')[-1]}", 'w') as csv_file:  
     writer = cc.writer(csv_file)
@@ -154,29 +195,5 @@ def regression2(dataset, repeats):
 
 
 dataset = sys.argv[1]
-repeats = 1
+repeats = 20
 [stats.report( regression(dataset, repeats) ) ]
-
-#d = DATA().adds(csv(dataset))
-#b4 = [d.chebyshev(row) for row in d.rows]
-#somes = []
-#somes.append(stats.SOME(b4,f"asIs,{len(d.rows)}"))
-
-#repeats = 1
-#d = DATA().adds(csv(dataset))
-#for N in (20,30,40,50):
-#  the.Last = N
-#  d = d.shuffle()
-#  dumb = [d.clone(random.choices(d.rows, k=N)).chebyshevs().rows for _ in range(repeats)]
-#  dumb = [d.chebyshev( lst[0] ) for lst in dumb]
-#
-#  somes.append(stats.SOME(dumb,f"dumb,{N}"))
-#
-#  the.Last = N
-#  smart = [d.shuffle().activeLearning() for _ in range(repeats)]
-#  smart = [d.chebyshev( lst[0] ) for lst in smart]
-#  somes.append(stats.SOME(smart,f"smart,{N}"))
-#
-#stats.report(somes, 0.01)
-
-
