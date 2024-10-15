@@ -86,6 +86,39 @@ def calc_baseline(dataset, repeats):
     #export(df_y, results , round(time.time()-st,2), dataset, algo)
 
 
+def calc_baseline2(train, test, cols, lrstat, lgbmstat, saving_preds):
+    def xy(df):
+        df_y = df[[c for c in df.columns if (c[-1] == '-' or c[-1] == '+')]]
+        df_X = df[[c for c in df.columns if (c[-1] != '-' and c[-1] != '+' and c[-1] != 'X')]]
+        df_X = pd.get_dummies(df_X, columns=[c for c in df_X.columns if c[0].islower()], drop_first=False)
+        df_y = pd.get_dummies(df_y, columns=[c for c in df_y.columns if c[0].islower()], drop_first=False)
+        return df_X, df_y
+    
+    train_df = pd.DataFrame(train, columns=cols)
+    test_df = pd.DataFrame(test, columns=cols)
+
+    X_train, y_train = xy(train_df)
+    X_test, y_test = xy(test_df)
+
+    predictions = {}
+    predictions["col"] = ["LR", "LGBM"]
+    for target_column in y_train.columns:
+        y_pred_lr = linear( X_train, y_train[target_column], X_test)
+        y_pred_lgbm = lightgbm( X_train, y_train[target_column], X_test)
+
+        sdv = y_train[target_column].std()
+        for idx in range(len(y_test)):
+            lrstat.add(abs(y_test[target_column].iloc[idx] - y_pred_lr[idx])/sdv)
+            lgbmstat.add(abs(y_test[target_column].iloc[idx] - y_pred_lgbm[idx])/sdv)
+            if saving_preds:
+                pred_col = str(idx) + '-' + target_column
+                if (pred_col not in predictions.keys()):
+                    predictions[pred_col] = []
+                predictions[pred_col].append(round(y_pred_lr[idx],2))
+                predictions[pred_col].append(round(y_pred_lgbm[idx],2))
+    
+    return lrstat, lgbmstat, predictions
+
 #print("started.")
 #calc_baseline('linear', 'data/hpo/healthCloseIsses12mths0001-hard.csv')
 #calc_baseline('lightgbm', 'data/hpo/healthCloseIsses12mths0001-hard.csv')

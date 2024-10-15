@@ -13,6 +13,8 @@ from synthesize import upsampling
 def regression(dataset, repeats):
   d = DATA().adds(csv(dataset))
   somes  = []
+  lrstat  = stats.SOME(txt='LR')
+  lgbmstat  = stats.SOME(txt='LGBM')
   mid1s  = stats.SOME(txt="mid-leaf")
   dumb   = stats.SOME(txt=f"asIs")
 
@@ -21,49 +23,58 @@ def regression(dataset, repeats):
   kss = [stats.SOME(txt="k1"), stats.SOME(txt="k3"), stats.SOME(txt="k5")]
   for ks in kss:
     somes += [ks]
-  res = {}
-  res["col"] = ["actual", "asIs", "mid-leaf", "k1", "k3", "k5"]
+  predictions = {}
+  predictions["col"] = ["actual", "asIs", "mid-leaf", "k1", "k3", "k5"]
 
-  for rnd in range(repeats):    
-      for train,test in xval(d.rows):
-        cluster = d.cluster(train)
-        dumb_rows = d.clone(random.choices(train, k=the.Stop))
-        for index, want in enumerate(test):
-          leaf = cluster.leaf(d, want)
-          rows = leaf.data.rows
-          gots  = [ d.predict(want, rows, k=k) for k in [1,3,5] ]
-          mid1  = leaf.data.mid()
-          dumb_mid = dumb_rows.mid()
-          
-          c=0
-          a = {}
-          for got, ks in zip(gots, kss):
-            for at,got1 in got.items():
-              sd = d.cols.all[at].div()
-              col = str(index) + '-' + d.cols.all[at].txt
-              if (col not in a.keys()) and (rnd==0):
-                a[col] = []
-              if c==0:
-                if rnd==0:
-                  a[col].append(round(want[at],2))
-                  a[col].append(round(dumb_mid[at], 2))
-                  a[col].append(round(mid1[at], 2))
-                mid1s.add( (want[at] - mid1[at])/sd)
-                dumb.add( (want[at] - dumb_mid[at])/sd)
-              if rnd==0:
-                a[col].append(round(got1, 2))
-              ks.add(   (want[at] - got1   )/sd)
-            c = 1
-          if rnd==0:
-            res.update(a)
-  
+  saving_preds = True
+  for _ in range(repeats):    
+    random.shuffle(d.rows)
+    for train,test in xval(d.rows):
+      lrstat, lgbmstat, bp = baseline.calc_baseline2(train, test, [c.txt for c in d.cols.all], lrstat, lgbmstat, saving_preds)
+      if saving_preds: bl_predictions = bp
+
+      cluster = d.cluster(train)
+      dumb_rows = d.clone(random.choices(train, k=the.Stop))
+      for index, want in enumerate(test):
+        leaf = cluster.leaf(d, want)
+        rows = leaf.data.rows
+        mid1  = leaf.data.mid()
+        dumb_mid = dumb_rows.mid()
+
+        k_preds  = [ d.predict(want, rows, k=k) for k in [1,3,5] ]
+        
+        add_all = True
+        row_pred = {}
+        for k_pred, kstat in zip(k_preds, kss):
+          for at,pred in k_pred.items():
+            sd = d.cols.all[at].div()
+            col = str(index) + '-' + d.cols.all[at].txt
+            if (col not in predictions.keys()) and saving_preds:
+              predictions[col] = []
+            if saving_preds and add_all:
+              predictions[col].append(round(want[at],2))
+              predictions[col].append(round(dumb_mid[at], 2))
+              predictions[col].append(round(mid1[at], 2))
+            if saving_preds: predictions[col].append(round(pred, 2))
+            
+            if add_all:
+              mid1s.add( abs(want[at] - mid1[at])/sd)
+              dumb.add( abs(want[at] - dumb_mid[at])/sd)
+
+            kstat.add(   abs(want[at] - pred   )/sd)
+          add_all = False
+      saving_preds = False
+
+  somes += [lrstat]
+  somes += [lgbmstat]
   ## Export Predictions
   with open(f"reg/res/low-res/predictions/{dataset.split('/')[-1]}", 'w') as csv_file:  
     writer = cc.writer(csv_file)
-    for key, value in res.items():
+    for key, value in predictions.items():
        k = [key]
        [k.append(v) for v in value]
-       writer.writerow(k)
+       [k.append(v) for v in bl_predictions[key]]
+       writer.writerow(k)  
   return somes
 
 
@@ -144,7 +155,7 @@ def regression2(dataset, repeats):
 
 dataset = sys.argv[1]
 repeats = 1
-[stats.report( regression(dataset, repeats) +  baseline.calc_baseline(dataset, repeats)) ]
+[stats.report( regression(dataset, repeats) ) ]
 
 #d = DATA().adds(csv(dataset))
 #b4 = [d.chebyshev(row) for row in d.rows]
