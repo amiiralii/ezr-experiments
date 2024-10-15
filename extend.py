@@ -23,8 +23,8 @@ def regression(dataset, repeats):
     somes += [ks]
   res = {}
   res["col"] = ["actual", "asIs", "mid-leaf", "k1", "k3", "k5"]
+
   for rnd in range(repeats):    
-      
       for train,test in xval(d.rows):
         cluster = d.cluster(train)
         dumb_rows = d.clone(random.choices(train, k=the.Stop))
@@ -48,14 +48,16 @@ def regression(dataset, repeats):
                   a[col].append(round(want[at],2))
                   a[col].append(round(dumb_mid[at], 2))
                   a[col].append(round(mid1[at], 2))
-                mid1s.add(abs(want[at] - mid1[at])/sd)
-                dumb.add(abs(want[at] - dumb_mid[at])/sd)
+                mid1s.add( (want[at] - mid1[at])/sd)
+                dumb.add( (want[at] - dumb_mid[at])/sd)
               if rnd==0:
                 a[col].append(round(got1, 2))
-              ks.add(  abs(want[at] - got1   )/sd)
+              ks.add(   (want[at] - got1   )/sd)
             c = 1
           if rnd==0:
             res.update(a)
+  
+  ## Export Predictions
   with open(f"reg/res/low-res/predictions/{dataset.split('/')[-1]}", 'w') as csv_file:  
     writer = cc.writer(csv_file)
     for key, value in res.items():
@@ -63,6 +65,7 @@ def regression(dataset, repeats):
        [k.append(v) for v in value]
        writer.writerow(k)
   return somes
+
 
 ## Treatments: asIs, mid-leaf, 1-2-3 Nearest Neighbors, and overpopulated version of each
 ## Goal: Regression
@@ -140,8 +143,8 @@ def regression2(dataset, repeats):
 
 
 dataset = sys.argv[1]
-repeats = 20
-[stats.report( regression2(dataset, repeats) +  baseline.calc_baseline(dataset, repeats)) ]
+repeats = 1
+[stats.report( regression(dataset, repeats) +  baseline.calc_baseline(dataset, repeats)) ]
 
 #d = DATA().adds(csv(dataset))
 #b4 = [d.chebyshev(row) for row in d.rows]
