@@ -1,8 +1,8 @@
 loading_time:,0.05
-asIs_time:,0.12
-lr_time:,3.51
-midleaf_time:,11.4
-k1_time:,17.99
-k3_time:,18.23
-k5_time:,18.51
-lgbm_time:,29.57
+asIs_time:,0.11
+lr_time:,3.47
+midleaf_time:,11.0
+k1_time:,17.6
+k3_time:,17.81
+k5_time:,18.11
+lgbm_time:,30.33

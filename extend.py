@@ -97,7 +97,7 @@ def regression(dataset, repeats):
   somes += [lgbmstat]
   
   ## Export Run Times
-  with open(f"reg/res/low-res/times/{dataset.split('/')[-1]}", 'w') as csv_file:  
+  with open(f"reg/res/high-res/times/{dataset.split('/')[-1]}", 'w') as csv_file:  
     writer = cc.writer(csv_file)
     writer.writerow(["loading_time:", round(loading_time,2)])
     writer.writerow(["asIs_time:", round(asIs_time,2)])
@@ -109,7 +109,7 @@ def regression(dataset, repeats):
     writer.writerow(["lgbm_time:", round(lgbm_time,2)])
 
   ## Export Predictions
-  with open(f"reg/res/low-res/predictions/{dataset.split('/')[-1]}", 'w') as csv_file:  
+  with open(f"reg/res/high-res/predictions/{dataset.split('/')[-1]}", 'w') as csv_file:  
     writer = cc.writer(csv_file)
     for key, value in predictions.items():
        k = [key]

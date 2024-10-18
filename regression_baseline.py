@@ -100,6 +100,9 @@ def calc_baseline2(train, test, cols, lrstat, lgbmstat, saving_preds, lr_time, l
     X_train, y_train = xy(train_df)
     X_test, y_test = xy(test_df)
 
+    X_test = X_test.reindex(columns=X_train.columns, fill_value=0)
+    y_test = y_test.reindex(columns=y_train.columns, fill_value=0)
+
     predictions = {}
     predictions["col"] = ["LR", "LGBM"]
     for target_column in y_train.columns:
