@@ -115,8 +115,8 @@ def calc_baseline2(train, test, cols, lrstat, lgbmstat, saving_preds, lr_time, l
 
         sdv = y_train[target_column].std()
         for idx in range(len(y_test)):
-            lrstat.add((y_test[target_column].iloc[idx] - y_pred_lr[idx])/sdv)
-            lgbmstat.add((y_test[target_column].iloc[idx] - y_pred_lgbm[idx])/sdv)
+            lrstat.add( (y_test[target_column].iloc[idx] - y_pred_lr[idx])/sdv)
+            lgbmstat.add( (y_test[target_column].iloc[idx] - y_pred_lgbm[idx])/sdv)
             if saving_preds:
                 pred_col = str(idx) + '-' + target_column
                 if (pred_col not in predictions.keys()):

@@ -5,11 +5,12 @@ import regression_baseline as baseline
 import csv as cc
 import time
 from synthesize import upsampling
+from math import sqrt
 
 
-## Treatments: asIs, mid-leaf, 1-2-3 Nearest Neighbors
+## Treatments: asIs, mid-leaf, 1-3-5 Nearest Neighbors
 ## Goal: Regression
-## Metric: Sum of Absolute Value of Standardized Residuals : Sum( abs( (real-pred)/sd ) )
+## Metric: Sum of Absolute Value of Standardized Residuals : Sum( ( (real-pred)/sd ) )
 def regression(dataset, repeats):
   loading_time, lr_time, lgbm_time = 0, 0, 0
   asIs_time, midleaf_time, k1_time, k3_time, k5_time = 0, 0, 0, 0, 0
@@ -119,7 +120,7 @@ def regression(dataset, repeats):
   return somes
 
 
-## Treatments: asIs, mid-leaf, 1-2-3 Nearest Neighbors, and overpopulated version of each
+## Treatments: asIs, mid-leaf, 1-3-5 Nearest Neighbors, and overpopulated version of each
 ## Goal: Regression
 ## Metric: Sum of Absolute Value of Standardized Residuals : Sum( abs( (real-pred)/sd ) )
 def regression2(dataset, repeats):
@@ -194,6 +195,126 @@ def regression2(dataset, repeats):
   return somes
 
 
+## Treatments: asIs, mid-leaf, 1-3-5 Nearest Neighbors, each with 10, 30, 50, SQRT(N) clusters
+## Goal: Regression
+## Metric: Sum of Absolute Value of Standardized Residuals : Sum( ( (real-pred)/sd ) )
+def regression3(dataset, repeats):
+  loading_time, lr_time, lgbm_time = 0, 0, 0
+  asIs_time, midleaf_time, k1_time, k3_time, k5_time = 0, 0, 0, 0, 0
+
+  t1 = time.time()
+  d = DATA().adds(csv(dataset))
+  
+  somes  = {}
+  lrstat = stats.SOME(txt='LR')
+  lgbmstat = stats.SOME(txt='LGBM')
+
+  for m in ["asIs", "mid-leaf", "k1", "k3", "k5"]:
+    for s in [10, 30, 50, int(sqrt(len(d.rows)))]:
+      if s == int(sqrt(len(d.rows))): somes[f"{m},sq"] = stats.SOME(txt=f"{m},sq")
+      else: somes[f"{m},{str(s)}"] = stats.SOME(txt=f"{m},{str(s)}")
+  
+  times = {}
+  for m in ["asIs", "mid-leaf", "k1", "k3", "k5"]:
+    for s in [10, 30, 50, int(sqrt(len(d.rows)))]:
+      if s == int(sqrt(len(d.rows))): times[f"{m},sq"] = 0
+      else: times[f"{m},{str(s)}"] = 0
+
+  saving_preds = False
+  
+  ## Repeating Experiment
+  for _ in range(repeats):
+    random.shuffle(d.rows)
+    ## K-Fold Cross Validation
+    for train,test in xval(d.rows):
+      lrstat, lgbmstat, bp , lr_time, lgbm_time= baseline.calc_baseline2(train, test, [c.txt for c in d.cols.all], lrstat, lgbmstat, saving_preds, lr_time, lgbm_time)
+      if saving_preds: bl_predictions = bp
+      ## different leaf size
+      for stp in [10, 30, 50, int(sqrt(len(d.rows)))]:
+        t0 = time.time()
+        cluster = d.cluster(train, stop = stp)
+        t1 = time.time()
+        dumb_rows = d.clone(random.choices(train, k=stp))
+        dumb_mid = dumb_rows.mid()
+        t2 = time.time()
+
+        for tr in times.keys():
+          if "asIs" in tr: times[tr] += t2-t1
+          else: times[tr] += t1-t0
+
+        ## Iterate through each test row
+        for want in test:
+          std = d.div()
+          leaf = cluster.leaf(d, want)
+          rows = leaf.data.rows
+          mid1  = leaf.data.mid()
+          ## Regression result per each method
+          for treatment in somes.keys():
+            if "asIs" in treatment:
+              t1 = time.time()
+              for y in d.cols.y:
+                somes[treatment].add( (want[y.at] - dumb_mid[y.at]) / std[y.at])
+              t2 = time.time()
+              times[treatment] += t2-t1
+
+            if "mid-leaf" in treatment:
+              t1 = time.time()
+              for y in d.cols.y:
+                somes[treatment].add( (want[y.at] - mid1[y.at]) / std[y.at])
+              t2 = time.time()
+              times[treatment] += t2-t1
+
+            if "k1" in treatment:
+              t1 = time.time()
+              pred = d.predict(want, rows, k=1)
+              for y in d.cols.y:
+                somes[treatment].add( (want[y.at] - pred[y.at]) / std[y.at])
+              t2 = time.time()
+              times[treatment] += t2-t1
+
+            if "k3" in treatment:
+              t1 = time.time()
+              pred = d.predict(want, rows, k=3)
+              for y in d.cols.y:
+                somes[treatment].add( (want[y.at] - pred[y.at]) / std[y.at])
+              t2 = time.time()
+              times[treatment] += t2-t1
+
+            if "k5" in treatment:
+              t1 = time.time()
+              pred = d.predict(want, rows, k=5)
+              for y in d.cols.y:
+                somes[treatment].add( (want[y.at] - pred[y.at]) / std[y.at])   
+              t2 = time.time()
+              times[treatment] += t2-t1 
+
+
+  
+  ## Export Run Times
+  with open(f"reg3/res/low-res/times/{dataset.split('/')[-1]}", 'w') as csv_file:  
+      writer = cc.writer(csv_file)
+      for i,j in dict(sorted(times.items())).items():
+        writer.writerow([i, round(j,2)])
+      
+  
+  if saving_preds:
+    ## Export Predictions
+    with open(f"reg/res/high-res/predictions/{dataset.split('/')[-1]}", 'w') as csv_file:  
+      writer = cc.writer(csv_file)
+      for key, value in predictions.items():
+        k = [key]
+        [k.append(v) for v in value]
+        [k.append(v) for v in bl_predictions[key]]
+        writer.writerow(k)  
+  
+  res = []
+  for m in somes.values():
+    res += [m]
+  res += [lrstat]
+  res += [lgbmstat]
+  return res
+
+
 dataset = sys.argv[1]
-repeats = 20
-[stats.report( regression(dataset, repeats) ) ]
+repeats = 1
+[stats.report( regression3(dataset, repeats) ) ]
