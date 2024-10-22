@@ -182,6 +182,10 @@ def of(doc):
 def mid(self:DATA) -> row: 
   return [col.mid() for col in self.cols.all]
 
+@of("Return diversity of a DATA.")
+def div(self:DATA) -> row: 
+  return [col.div() for col in self.cols.all]
+
 @of("Return central tendency of NUMs.")
 def mid(self:NUM) -> number: return self.mu
 
@@ -479,7 +483,7 @@ def cluster(self:DATA, rows:rows=None,  sortp=False, stop=None, cut=None, fun=No
   stop = stop or the.Stop
   rows = rows or self.rows
   cut1, ls, rs, left, right = self.half(rows,sortp=sortp)
-  it = CLUSTER(data=self.clone(rows), cut=cut, fun=fun, left=left, right=right, mid=rs[0], lvl=lvl)
+  it = CLUSTER(data=self.clone(rows), cut=cut, fun=fun, left=left, right=right, mid=ls[-1], lvl=lvl)
   if len(ls)>stop and len(ls)<len(rows): it.lefts  = self.cluster(ls, sortp, stop, cut1, le, lvl+1)
   if len(rs)>stop and len(rs)<len(rows): it.rights = self.cluster(rs, sortp, stop, cut1, gt, lvl+1)
   return it
