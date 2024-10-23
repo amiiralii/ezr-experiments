@@ -289,7 +289,6 @@ def regression3(dataset, repeats):
               times[treatment] += t2-t1 
 
 
-  
   ## Export Run Times
   with open(f"reg3/res/low-res/times/{dataset.split('/')[-1]}", 'w') as csv_file:  
       writer = cc.writer(csv_file)
@@ -316,5 +315,5 @@ def regression3(dataset, repeats):
 
 
 dataset = sys.argv[1]
-repeats = 1
+repeats = 20
 [stats.report( regression3(dataset, repeats) ) ]
