@@ -134,7 +134,7 @@ def sk(somes,epsilon=0.01):
           return rank
     for some in somes: some.rank = rank
     return rank
-  somes = sorted(somes, key=lambda some: some.mid()) #lambda some : some.mid())
+  somes = sorted(somes, key=lambda some: abs(some.mid())) #lambda some : some.mid())
   sk1(somes,0)
   return somes
 
