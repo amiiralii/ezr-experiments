@@ -596,7 +596,7 @@ def like(self:NUM, x:number, prior=None) -> float:
 #
 # ### Active Learning
 @of("active learning")
-def activeLearning(self:DATA, score=lambda B,R: B-R, generate=None, faster=True ):
+def activeLearning(self:DATA, score=lambda B,R: B-R, generate=None, faster=True, acquisition = None):
   def ranked(rows): return self.clone(rows).chebyshevs().rows
 
   def todos(todo):
@@ -618,13 +618,16 @@ def activeLearning(self:DATA, score=lambda B,R: B-R, generate=None, faster=True 
     else:
       key  = lambda r: score(best.loglike(r, len(done), 2), rest.loglike(r, len(done), 2))
       return  sorted(a, key=key, reverse=True) + b
-
+  
   def loop(todo:rows, done:rows) -> rows:
     while len(todo) > 2 and len(done) < the.Last:
-      top,*todo = guess(todo, done)
+      if acquisition:
+        top,*todo = acquisition(todo,done)
+      else:
+        top,*todo = guess(todo, done)
       done     += [top]
       done      = ranked(done)
-    return done
+    return done, todo
   
   todo, done = self.rows[the.label:], ranked(self.rows[:the.label])
 
