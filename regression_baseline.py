@@ -85,15 +85,15 @@ def calc_baseline(dataset, repeats):
     return [lrstat,lgbmstat]
     #export(df_y, results , round(time.time()-st,2), dataset, algo)
 
+def xy(df):
+    df_y = df[[c for c in df.columns if (c[-1] == '-' or c[-1] == '+')]]
+    df_X = df[[c for c in df.columns if (c[-1] != '-' and c[-1] != '+' and c[-1] != 'X')]]
+    df_X = pd.get_dummies(df_X, columns=[c for c in df_X.columns if c[0].islower()], drop_first=False)
+    df_y = pd.get_dummies(df_y, columns=[c for c in df_y.columns if c[0].islower()], drop_first=False)
+    return df_X, df_y
 
 def calc_baseline2(train, test, cols, lrstat, lgbmstat, saving_preds, lr_time, lgbm_time):
-    def xy(df):
-        df_y = df[[c for c in df.columns if (c[-1] == '-' or c[-1] == '+')]]
-        df_X = df[[c for c in df.columns if (c[-1] != '-' and c[-1] != '+' and c[-1] != 'X')]]
-        df_X = pd.get_dummies(df_X, columns=[c for c in df_X.columns if c[0].islower()], drop_first=False)
-        df_y = pd.get_dummies(df_y, columns=[c for c in df_y.columns if c[0].islower()], drop_first=False)
-        return df_X, df_y
-    
+
     train_df = pd.DataFrame(train, columns=cols)
     test_df = pd.DataFrame(test, columns=cols)
 

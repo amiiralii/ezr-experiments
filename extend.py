@@ -1,12 +1,12 @@
 import random, sys
-from ezr import the, DATA, csv, xval
+from ezr import the, DATA, csv, xval, activeLearning, rows
 import stats
 import regression_baseline as baseline
 import csv as cc
 import time
 from synthesize import upsampling
 from math import sqrt
-
+import pandas as pd
 
 ## Treatments: asIs, mid-leaf, 1-3-5 Nearest Neighbors
 ## Goal: Regression
@@ -314,6 +314,79 @@ def regression3(dataset, repeats):
   return res
 
 
+## Treatments: different Acquisition functions
+## Goal: Sampling and Regression
+## Metric: Sum of Absolute Value of Standardized Residuals : Sum( ( (real-pred)/sd ) )
+def regression4(dataset, repeats):
+  def random_sampling(todo:rows, done:rows) -> rows:
+    random.shuffle(todo)
+    return todo
+  
+  def uncertainty_sampling(todo:rows, done:rows) -> rows:
+    errors = uncertainty(todo, done, [c.txt for c in d.cols.all])
+    idx = max(errors, key= lambda x: errors[x])
+    todo[0], todo[idx] = todo[idx], todo[0]
+    return todo
+
+  def uncertainty(test, train, cols):
+    X_train, y_train, X_test, y_test = reg_prepare(train, test, cols)
+
+    sdvs = {target_column : y_train[target_column].std() for target_column in y_train.columns}
+    errors = {idx : 0 for idx in range(len(y_test))}
+
+    for target_column in y_train.columns:
+        y_pred_lr = baseline.linear( X_train, y_train[target_column], X_test)
+        for idx in range(len(y_pred_lr)):
+            errors[idx] += abs(y_test[target_column].iloc[idx] - y_pred_lr[idx])/sdvs[target_column]
+    return errors
+  
+  def reg_prepare(train, test, cols):
+
+    train_df = pd.DataFrame(train, columns=cols)
+    test_df = pd.DataFrame(test, columns=cols)
+
+    X_train, y_train = baseline.xy(train_df)
+    X_test, y_test = baseline.xy(test_df)
+
+    X_test = X_test.reindex(columns=X_train.columns, fill_value=0)
+    y_test = y_test.reindex(columns=y_train.columns, fill_value=0)
+
+    return X_train, y_train, X_test, y_test
+
+  def reg_predict(regressor, stat, X_train, y_train, X_test, y_test):
+    for target_column in y_train.columns:
+        y_pred_lr = regressor( X_train, y_train[target_column], X_test)
+        sdv = y_train[target_column].std()
+        for idx in range(len(y_test)):
+            stat.add( (y_test[target_column].iloc[idx] - y_pred_lr[idx])/sdv)
+    return stat
+  
+  d = DATA().adds(csv(dataset))
+  map_name = {random_sampling:'RS', uncertainty_sampling: 'US',
+                baseline.linear: 'LR', baseline.lightgbm:'LGBM'}
+  somes  = []
+
+  for round in range(repeats):
+    for acq_func in [random_sampling, uncertainty_sampling]:
+      train, test = d.shuffle().activeLearning(acquisition=acq_func)
+      X_train, y_train, X_test, y_test = reg_prepare(train, test, [c.txt for c in d.cols.all])
+      for regressor in [baseline.linear, baseline.lightgbm]:
+        trt_name = f'{map_name[acq_func]},{map_name[regressor]}'
+        treatment = [trt for trt in somes if trt.txt == trt_name]
+      
+        if not treatment:
+          treatment = stats.SOME(txt=trt_name)
+          somes += [treatment]
+        else:
+          treatment = treatment[0]
+
+        treatment = reg_predict(regressor, treatment, X_train, y_train, X_test, y_test)
+    print(round,"completed!")
+  return somes
+
+  
+
+
 dataset = sys.argv[1]
-repeats = 20
-[stats.report( regression3(dataset, repeats) ) ]
+repeats = 10
+[stats.report( regression4(dataset, repeats) ) ]
