@@ -1,5 +1,5 @@
 import random, sys
-from ezr import the, DATA, csv, xval, activeLearning, rows
+from ezr import the, DATA, csv, xval, activeLearning, rows, dist
 import stats
 import regression_baseline as baseline
 import csv as cc
@@ -322,24 +322,39 @@ def regression4(dataset, repeats):
     random.shuffle(todo)
     return todo
   
-  def uncertainty_sampling(todo:rows, done:rows) -> rows:
-    errors = uncertainty(todo, done, [c.txt for c in d.cols.all])
+  def greedy_sampling(todo:rows, done:rows) -> rows:
+    min_dists = dist_to_dones(todo, done)
+    idx = min_dists.index(max(min_dists))
+    todo[0], todo[idx] = todo[idx], todo[0]
+    return todo
+      
+  def uncertainty_sampling(todo:rows, done:rows, adopt) -> rows:
+    errors = uncertainty(todo, done, [c.txt for c in d.cols.all], adopt)
     idx = max(errors, key= lambda x: errors[x])
     todo[0], todo[idx] = todo[idx], todo[0]
     return todo
 
-  def uncertainty(test, train, cols):
+  def uncertainty(test, train, cols, regressor):
     X_train, y_train, X_test, y_test = reg_prepare(train, test, cols)
 
     sdvs = {target_column : y_train[target_column].std() for target_column in y_train.columns}
     errors = {idx : 0 for idx in range(len(y_test))}
 
     for target_column in y_train.columns:
-        y_pred_lr = baseline.linear( X_train, y_train[target_column], X_test)
+        y_pred_lr = regressor( X_train, y_train[target_column], X_test)
         for idx in range(len(y_pred_lr)):
-            errors[idx] += abs(y_test[target_column].iloc[idx] - y_pred_lr[idx])/sdvs[target_column]
+            errors[idx] += abs(y_test[target_column].iloc[idx] - y_pred_lr[idx])/(sdvs[target_column]+ 1E-30)
     return errors
   
+  def dist_to_dones(todo:rows, done:rows):
+    dists = [1E+30] * len(todo)
+    for i, unlabeled in enumerate(todo):
+      for labeled in done:
+        dst = d.dist(labeled, unlabeled)
+        if dst < dists[i]:
+          dists[i] = dst
+    return dists
+
   def reg_prepare(train, test, cols):
 
     train_df = pd.DataFrame(train, columns=cols)
@@ -362,31 +377,49 @@ def regression4(dataset, repeats):
     return stat
   
   d = DATA().adds(csv(dataset))
-  map_name = {random_sampling:'RS', uncertainty_sampling: 'US',
-                baseline.linear: 'LR', baseline.lightgbm:'LGBM'}
+  map_name = {random_sampling:'RS', uncertainty_sampling: 'US', greedy_sampling: 'GS',
+                baseline.linear: 'LR', baseline.ridge: 'RR', baseline.random_forest: 'RF', baseline.lightgbm:'LGBM'}
   somes  = []
+  labeled_size = 0.2 * 0.8 * len(d.rows)
 
-  for round in range(repeats):
-    for acq_func in [random_sampling, uncertainty_sampling]:
-      train, test = d.shuffle().activeLearning(acquisition=acq_func)
-      X_train, y_train, X_test, y_test = reg_prepare(train, test, [c.txt for c in d.cols.all])
-      for regressor in [baseline.linear, baseline.lightgbm]:
-        trt_name = f'{map_name[acq_func]},{map_name[regressor]}'
-        treatment = [trt for trt in somes if trt.txt == trt_name]
+  ## Repeating experiment for Statistical validation
+  for _ in range(repeats):
+    ## K-Fold Cross Validation
+    for train,test in xval(d.rows):
+      ## Iterating over acquisition functions
+      # passive methods
+      for acq_func in [greedy_sampling, random_sampling]:
+        samples, _ = d.clone(train).activeLearning(acquisition=acq_func, stop = labeled_size)
+        X_train, y_train, X_test, y_test = reg_prepare(samples, test, [c.txt for c in d.cols.all])
+        # Iterating over regressors
+        for regressor in [baseline.linear, baseline.ridge, baseline.random_forest, baseline.lightgbm]:
+          trt_name = f'{map_name[acq_func]},{map_name[regressor]}'
+          treatment = [trt for trt in somes if trt.txt == trt_name]
+          if not treatment:
+            treatment = stats.SOME(txt=trt_name)
+            somes += [treatment]
+          else:
+            treatment = treatment[0]
+          treatment = reg_predict(regressor, treatment, X_train, y_train, X_test, y_test)
       
-        if not treatment:
-          treatment = stats.SOME(txt=trt_name)
-          somes += [treatment]
-        else:
-          treatment = treatment[0]
+      # adoptive methods
+      for acq_func in [uncertainty_sampling]:
+        # Iterating over regressors
+        for regressor in [baseline.linear, baseline.ridge, baseline.random_forest, baseline.lightgbm]:
+          samples, _ = d.clone(train).activeLearning(acquisition=acq_func, adopt = regressor, stop= labeled_size)
+          X_train, y_train, X_test, y_test = reg_prepare(samples, test, [c.txt for c in d.cols.all])
 
-        treatment = reg_predict(regressor, treatment, X_train, y_train, X_test, y_test)
-    print(round,"completed!")
+          trt_name = f'{map_name[acq_func]},{map_name[regressor]}'
+          treatment = [trt for trt in somes if trt.txt == trt_name]
+          if not treatment:
+            treatment = stats.SOME(txt=trt_name)
+            somes += [treatment]
+          else:
+            treatment = treatment[0]
+          treatment = reg_predict(regressor, treatment, X_train, y_train, X_test, y_test)
   return somes
-
-  
 
 
 dataset = sys.argv[1]
-repeats = 10
+repeats = 1
 [stats.report( regression4(dataset, repeats) ) ]

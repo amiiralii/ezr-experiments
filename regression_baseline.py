@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge as ridgeRegression
+from sklearn.ensemble import RandomForestRegressor
 import lightgbm as lgb
 import random
 import time
@@ -14,6 +16,16 @@ def mape(y_true, y_pred):
 
 def linear(X_train, y_train, X_test):
     model = LinearRegression()
+    model.fit(X_train, y_train)
+    return model.predict(X_test)
+
+def ridge(X_train, y_train, X_test):
+    model = ridgeRegression(alpha=0.01)
+    model.fit(X_train, y_train)
+    return model.predict(X_test)
+
+def random_forest(X_train, y_train, X_test):
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
     model.fit(X_train, y_train)
     return model.predict(X_test)
 
