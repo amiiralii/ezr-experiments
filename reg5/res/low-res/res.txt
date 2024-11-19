@@ -1,0 +1,8 @@
+RANK         0           1  2  3  4  5   6  7
+k3         100                               
+LR         100                               
+k1          93           7                   
+LGBM        93           7                   
+mid-leaf    93           7                   
+k5          93           7                   
+asIs        93           7                
