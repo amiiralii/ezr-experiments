@@ -42,19 +42,19 @@ for key in "${!counts[@]}"; do
     esac
 done
 
-# Write results to a temporary file
+# Write results to a temporary file for sorting
 temp_file=$(mktemp)
-echo "Sampling,regressor,rank0,count0,rank1,count1,rank2,count2" > "$temp_file"
+echo "Sampling, Regressor,rank0,count0,rank1,count1,rank2,count2" > "$temp_file"
 
 for treatment in "${!consolidated[@]}"; do
     count0=$(echo "${consolidated[$treatment]}" | grep -o 'rank0,[0-9]*' | cut -d, -f2)
-    echo "$treatment,$count0,${consolidated[$treatment]}" >> "$temp_file"
+    echo "$treatment,${consolidated[$treatment]}" >> "$temp_file"
 done
 
-# Sort by the `count0` column (2nd column) numerically in descending order
+# Sort by `count0` (third column, numerically, descending)
 sorted_file="sorted_results.csv"
 head -n 1 "$temp_file" > "$sorted_file" # Add the header
-tail -n +2 "$temp_file" | sort -t',' -k2,2nr >> "$sorted_file"
+tail -n +2 "$temp_file" | sort -t',' -k4,4nr >> "$sorted_file"
 
 # Clean up the temporary file
 rm "$temp_file"
