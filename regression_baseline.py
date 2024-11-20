@@ -3,7 +3,9 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge as ridgeRegression
+from sklearn.linear_model import Lasso as LassoRegression
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.svm import SVR as SupportVectorRegressor
 import lightgbm as lgb
 import random
 import time
@@ -21,6 +23,16 @@ def linear(X_train, y_train, X_test):
 
 def ridge(X_train, y_train, X_test):
     model = ridgeRegression(alpha=0.01)
+    model.fit(X_train, y_train)
+    return model.predict(X_test)
+
+def lasso(X_train, y_train, X_test):
+    model = LassoRegression(alpha=0.1)
+    model.fit(X_train, y_train)
+    return model.predict(X_test)
+
+def svr(X_train, y_train, X_test):
+    model = SupportVectorRegressor(kernel='rbf', C=100, gamma=0.1, epsilon=0.1)
     model.fit(X_train, y_train)
     return model.predict(X_test)
 
@@ -137,6 +149,30 @@ def calc_baseline2(train, test, cols, lrstat, lgbmstat, saving_preds, lr_time, l
                 predictions[pred_col].append(round(y_pred_lgbm[idx],2))
     
     return lrstat, lgbmstat, predictions, lr_time, lgbm_time
+
+def prepare(train, test, cols):
+    train_df = pd.DataFrame(train, columns=cols)
+    test_df = pd.DataFrame(test, columns=cols)
+
+    X_train, y_train = xy(train_df)
+    X_test, y_test = xy(test_df)
+
+    X_test = X_test.reindex(columns=X_train.columns, fill_value=0)
+    y_test = y_test.reindex(columns=y_train.columns, fill_value=0)
+    
+    return X_train, y_train, X_test, y_test
+
+def calc_baseline3(X_train, y_train, X_test, y_test, stat, runtime, model):
+    for target_column in y_train.columns:
+        t1 = time.time()
+        y_pred = model( X_train, y_train[target_column], X_test)
+        runtime += time.time()-t1
+
+        sdv = y_train[target_column].std()
+        for idx in range(len(y_test)):
+            stat.add( (y_test[target_column].iloc[idx] - y_pred[idx])/sdv)
+
+    return stat, runtime
 
 #print("started.")
 #calc_baseline('linear', 'data/hpo/healthCloseIsses12mths0001-hard.csv')

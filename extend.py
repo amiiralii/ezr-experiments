@@ -420,7 +420,7 @@ def regression4(dataset, repeats):
   return somes
 
 
-## Treatments: asIs, mid-leaf, 1-3-5 Nearest Neighbors, each with 30, 50, SQRT(N) samples produced GS,RS
+## Treatments: asIs, mid-leaf, 1-3-5 Nearest Neighbors, each with SQRT(N) samples produced GS,RS
 ## Goal: Regression
 ## Metric: Sum of Absolute Value of Standardized Residuals : Sum( ( (real-pred)/sd ) )
 def regression5(dataset, repeats):
@@ -464,8 +464,10 @@ def regression5(dataset, repeats):
   
   ## Repeating Experiment
   for _ in range(repeats):
+    ## Choosing Samlping Method
     for sampling in [greedy_sampling, random_sampling]:
       acq = "GS" if sampling==greedy_sampling else "RS"
+      ## Choosing sampling rate
       for stp in [int(sqrt(len(d.rows)))]:
         random.shuffle(d.rows) 
         ## K-Fold Cross Validation
@@ -552,6 +554,152 @@ def regression5(dataset, repeats):
     res += [m]
   return res
 
+
+## Treatments: 
+##    Regressors: asIs, mid-leaf, 1-3-5 Nearest Neighbors, Linear, Lasso, Ridge, SVR, lgbm
+##    Number of Samlples: SQRT(N)
+##    Acq. functions: No Sampling, GS,RS
+## Goal: Regression
+## Metric: Sum of Absolute Value of Standardized Residuals : Sum( ( (real-pred)/sd ) )
+def regression6(dataset, repeats):
+  def random_sampling(todo, done):
+    random.shuffle(todo)
+    return todo
+  
+  def greedy_sampling(todo, done):
+    min_dists = dist_to_dones(todo, done)
+    idx = min_dists.index(max(min_dists))
+    todo[0], todo[idx] = todo[idx], todo[0]
+    return todo
+  
+  def dist_to_dones(todo, done):
+    dists = [1E+30] * len(todo)
+    for i, unlabeled in enumerate(todo):
+      for labeled in done:
+        dst = d.dist(labeled, unlabeled)
+        if dst < dists[i]:
+          dists[i] = dst
+    return dists
+
+  t1 = time.time()
+  d = DATA().adds(csv(dataset))
+  
+  somes  = {}
+  for sa in ["non", "RS", "GS"]:
+    for m in ["asIs", "mid-leaf", "k1", "k3", "k5", "LR", "LSR", "RR", "SVR", "LGBM"]:
+      somes[f"{sa},{m}"] = stats.SOME(txt=f"{sa},{m}")
+  
+  times = {}
+  for sa in ["non", "RS", "GS"]:
+    for m in ["asIs", "mid-leaf", "k1", "k3", "k5", "LR", "LSR", "RR", "SVR", "LGBM"]:
+      times[f"{sa},{m}"] = 0
+
+  ## Repeating Experiment
+  for _ in range(repeats):
+    ## Choosing Samlping Method
+    for sampling in ["non", greedy_sampling, random_sampling]:
+      acq = "GS" if sampling==greedy_sampling else "RS" if sampling==random_sampling else "non"
+      ## Choosing sampling rate
+      for stp in [int(sqrt(len(d.rows)))]:
+        random.shuffle(d.rows) 
+        ## K-Fold Cross Validation
+        for samples,test in xval(d.rows):
+          t0 = time.time()
+          if acq != "non":
+            train, _ = d.clone(samples).activeLearning(acquisition = sampling, stop = stp)
+          else:
+            train = samples
+          t1 = time.time()
+
+          for tr in times.keys():
+              if acq in tr: times[tr] += t1-t0
+        
+          models = {
+              "LR"  : baseline.linear, 
+              "LSR" : baseline.lasso, 
+              "RR"  : baseline.ridge,
+              "SVR" : baseline.svr, 
+              "LGBM": baseline.lightgbm
+          }
+          X_train, y_train, X_test, y_test = baseline.prepare(train, test, [c.txt for c in d.cols.all])
+          for reg in ["LR", "LSR", "RR", "SVR", "LGBM"]:
+            label = f"{acq},{reg}"
+            somes[label], times[label] = baseline.calc_baseline3(X_train, y_train, X_test, y_test, somes[label], times[label], models[reg])
+
+
+          t0 = time.time()
+          cluster = d.cluster(train, stop = 12)
+          t1 = time.time()
+          dumb_rows = d.clone(random.choices(train, k=12))
+          dumb_mid = dumb_rows.mid()
+          t2 = time.time()
+
+          for tr in times.keys():
+            if "asIs" in tr and acq in tr: times[tr] += t2-t1
+            elif acq in tr: times[tr] += t1-t0
+
+          ## Iterate through each test row
+          for want in test:
+            std = d.div()
+            leaf = cluster.leaf(d, want)
+            rows = leaf.data.rows
+            mid1  = leaf.data.mid()
+            ## Regression result per each method
+            for treatment in somes.keys():
+              if "asIs" in treatment and acq in treatment:
+                t1 = time.time()
+                for y in d.cols.y:
+                  somes[treatment].add( (want[y.at] - dumb_mid[y.at]) / std[y.at])
+                t2 = time.time()
+                times[treatment] += t2-t1
+
+              if "mid-leaf" in treatment and acq in treatment:
+                t1 = time.time()
+                for y in d.cols.y:
+                  somes[treatment].add( (want[y.at] - mid1[y.at]) / std[y.at])
+                t2 = time.time()
+                times[treatment] += t2-t1
+
+              if "k1" in treatment and acq in treatment:
+                t1 = time.time()
+                pred = d.predict(want, rows, k=1)
+                for y in d.cols.y:
+                  somes[treatment].add( (want[y.at] - pred[y.at]) / std[y.at])
+                t2 = time.time()
+                times[treatment] += t2-t1
+
+              if "k3" in treatment and acq in treatment:
+                t1 = time.time()
+                pred = d.predict(want, rows, k=3)
+                for y in d.cols.y:
+                  somes[treatment].add( (want[y.at] - pred[y.at]) / std[y.at])
+                t2 = time.time()
+                times[treatment] += t2-t1
+
+              if "k5" in treatment and acq in treatment:
+                t1 = time.time()
+                pred = d.predict(want, rows, k=5)
+                for y in d.cols.y:
+                  somes[treatment].add( (want[y.at] - pred[y.at]) / std[y.at])   
+                t2 = time.time()
+                times[treatment] += t2-t1 
+
+
+  ## Export Run Times
+  with open(f"reg6/res/low-res/times/{dataset.split('/')[-1]}", 'w') as csv_file:  
+      writer = cc.writer(csv_file)
+      for i,j in dict(sorted(times.items())).items():
+        writer.writerow([i, round(j,2)])
+      
+  
+  res = []
+  for m in somes.values():
+    print(m)
+    input()
+    res += [m]
+  
+  return res
+
 dataset = sys.argv[1]
-repeats = 20
-[stats.report( regression5(dataset, repeats) ) ]
+repeats = 1
+[stats.report( regression6(dataset, repeats) ) ]
