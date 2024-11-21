@@ -558,7 +558,7 @@ def regression5(dataset, repeats):
 ## Treatments: 
 ##    Regressors: asIs, mid-leaf, 1-3-5 Nearest Neighbors, Linear, Lasso, Ridge, SVR, lgbm
 ##    Number of Samlples: SQRT(N)
-##    Acq. functions: No Sampling, GS,RS
+##    Acq. functions: No Sampling, Diversity, Random Sampling
 ## Goal: Regression
 ## Metric: Sum of Absolute Value of Standardized Residuals : Sum( ( (real-pred)/sd ) )
 def regression6(dataset, repeats):
@@ -566,39 +566,52 @@ def regression6(dataset, repeats):
     random.shuffle(todo)
     return todo
   
-  def greedy_sampling(todo, done):
-    min_dists = dist_to_dones(todo, done)
-    idx = min_dists.index(max(min_dists))
+  def diversity_sampling(todo, done):
+    # For all candidates in todo
+    # Max( Min( dist( candidate , labeled ) ) )
+    def dist_to_dones(todo, done):
+      dists = [1E+30] * len(todo)
+      for i, unlabeled in enumerate(todo):
+        for labeled in done:
+          dst = d.dist(labeled, unlabeled)
+          if dst < dists[i]:
+            dists[i] = dst
+      i = dists.index(max(dists))
+      return dists.index(max(dists))
+    
+    # Pick a random candidate from todo 20 times
+    # Max( Min( dist( candidate , labeled ) ) )
+    def min_max(todo, done):
+      dist_picks = {}
+      for _ in range(the.fars):
+        pick = random.randrange(len(todo))
+        dist_picks[pick] = min(d.dist(labeled, todo[pick]) for labeled in done)
+      i = max(dist_picks, key= lambda x: dist_picks[x])
+      return max(dist_picks, key= lambda x: dist_picks[x])
+
+    #idx = dist_to_dones(todo, done)
+    idx = min_max(todo, done)
     todo[0], todo[idx] = todo[idx], todo[0]
     return todo
-  
-  def dist_to_dones(todo, done):
-    dists = [1E+30] * len(todo)
-    for i, unlabeled in enumerate(todo):
-      for labeled in done:
-        dst = d.dist(labeled, unlabeled)
-        if dst < dists[i]:
-          dists[i] = dst
-    return dists
 
   t1 = time.time()
   d = DATA().adds(csv(dataset))
   
   somes  = {}
-  for sa in ["non", "RS", "GS"]:
+  for sa in ["non", "RS", "DS"]:
     for m in ["asIs", "mid-leaf", "k1", "k3", "k5", "LR", "LSR", "RR", "SVR", "LGBM"]:
       somes[f"{sa},{m}"] = stats.SOME(txt=f"{sa},{m}")
   
   times = {}
-  for sa in ["non", "RS", "GS"]:
+  for sa in ["non", "RS", "DS"]:
     for m in ["asIs", "mid-leaf", "k1", "k3", "k5", "LR", "LSR", "RR", "SVR", "LGBM"]:
       times[f"{sa},{m}"] = 0
 
   ## Repeating Experiment
   for _ in range(repeats):
     ## Choosing Samlping Method
-    for sampling in ["non", greedy_sampling, random_sampling]:
-      acq = "GS" if sampling==greedy_sampling else "RS" if sampling==random_sampling else "non"
+    for sampling in ["non", diversity_sampling, random_sampling]:
+      acq = "DS" if sampling==diversity_sampling else "RS" if sampling==random_sampling else "non"
       ## Choosing sampling rate
       for stp in [int(sqrt(len(d.rows)))]:
         random.shuffle(d.rows) 
@@ -630,7 +643,7 @@ def regression6(dataset, repeats):
           t0 = time.time()
           cluster = d.cluster(train, stop = 12)
           t1 = time.time()
-          dumb_rows = d.clone(random.choices(train, k=12))
+          dumb_rows = d.clone(random.choices(train, k = 12))
           dumb_mid = dumb_rows.mid()
           t2 = time.time()
 
@@ -690,16 +703,13 @@ def regression6(dataset, repeats):
       writer = cc.writer(csv_file)
       for i,j in dict(sorted(times.items())).items():
         writer.writerow([i, round(j,2)])
-      
   
   res = []
   for m in somes.values():
-    print(m)
-    input()
     res += [m]
   
   return res
 
 dataset = sys.argv[1]
-repeats = 1
+repeats = 20
 [stats.report( regression6(dataset, repeats) ) ]

@@ -1,0 +1,15 @@
+python3.12 tp.py Apache_AllMeasurements.csv | tee times2/Apache_AllMeasurements.csv
+python3.12 tp.py SS-B.csv | tee times2/SS-B.csv
+python3.12 tp.py SS-D.csv | tee times2/SS-D.csv
+python3.12 tp.py SS-E.csv | tee times2/SS-E.csv
+python3.12 tp.py SS-F.csv | tee times2/SS-F.csv
+python3.12 tp.py SS-G.csv | tee times2/SS-G.csv
+python3.12 tp.py SS-H.csv | tee times2/SS-H.csv
+python3.12 tp.py SS-M.csv | tee times2/SS-M.csv
+python3.12 tp.py SS-O.csv | tee times2/SS-O.csv
+python3.12 tp.py wc+rs-3d-c4-obj1.csv | tee times2/wc+rs-3d-c4-obj1.csv
+python3.12 tp.py wc+sol-3d-c4-obj1.csv | tee times2/wc+sol-3d-c4-obj1.csv
+python3.12 tp.py wc+wc-3d-c4-obj1.csv | tee times2/wc+wc-3d-c4-obj1.csv
+python3.12 tp.py auto93.csv | tee times2/auto93.csv
+python3.12 tp.py nasa93dem.csv | tee times2/nasa93dem.csv
+python3.12 tp.py pom3d.csv | tee times2/pom3d.csv
