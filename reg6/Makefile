@@ -1,2 +1,2 @@
 report1 :
-	grep "RS,mid-leaf" *.csv | sort -k 2 | cat -n
+	grep "RS,mid-leaf" res/*.csv | sort -k 2 | cat -n
