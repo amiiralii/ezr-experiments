@@ -27,7 +27,7 @@ def ridge(X_train, y_train, X_test):
     return model.predict(X_test)
 
 def lasso(X_train, y_train, X_test):
-    model = LassoRegression(alpha=0.1)
+    model = LassoRegression(alpha=0.2)
     model.fit(X_train, y_train)
     return model.predict(X_test)
 

@@ -699,7 +699,7 @@ def regression6(dataset, repeats):
 
 
   ## Export Run Times
-  with open(f"reg6/res/low-res/times/{dataset.split('/')[-1]}", 'w') as csv_file:  
+  with open(f"reg6/res/times/{dataset.split('/')[-1]}", 'w') as csv_file:  
       writer = cc.writer(csv_file)
       for i,j in dict(sorted(times.items())).items():
         writer.writerow([i, round(j,2)])
