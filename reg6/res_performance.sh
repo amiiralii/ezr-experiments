@@ -52,7 +52,7 @@ for treatment in "${!consolidated[@]}"; do
 done
 
 # Sort by `count0` (third column, numerically, descending)
-sorted_file="sorted_results.csv"
+sorted_file="performance_res.csv"
 head -n 1 "$temp_file" > "$sorted_file" # Add the header
 tail -n +2 "$temp_file" | sort -t',' -k4,4nr >> "$sorted_file"
 

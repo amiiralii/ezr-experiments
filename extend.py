@@ -702,7 +702,7 @@ def regression6(dataset, repeats):
   with open(f"reg6/res/times/{dataset.split('/')[-1]}", 'w') as csv_file:  
       writer = cc.writer(csv_file)
       for i,j in dict(sorted(times.items())).items():
-        writer.writerow([i, round(j,2)])
+        writer.writerow([i[1:-1], round(j,2)])
   
   res = []
   for m in somes.values():
