@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Loop over all CSV files in the current directory
-for file in *.csv; do
+for file in res/times/*.csv; do
   # Check if there are any CSV files
   if [[ -e "$file" ]]; then
     echo "Sorting $file by the third field..."
@@ -14,3 +14,5 @@ for file in *.csv; do
 done
 
 echo "All CSV files have been sorted by the third field."
+
+python3.12 execution_time_table.py
