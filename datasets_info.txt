@@ -1,52 +1,53 @@
-{'name': 'process/nasa93dem.csv', 'len': 93, 'feature': 29}
-{'name': 'config/Apache_AllMeasurements.csv', 'len': 192, 'feature': 10}
-{'name': 'config/SS-D.csv', 'len': 196, 'feature': 5}
-{'name': 'config/SS-F.csv', 'len': 196, 'feature': 5}
-{'name': 'config/SS-G.csv', 'len': 196, 'feature': 5}
-{'name': 'misc/wc+rs-3d-c4-obj1.csv', 'len': 196, 'feature': 4}
-{'name': 'misc/wc+sol-3d-c4-obj1.csv', 'len': 196, 'feature': 4}
-{'name': 'misc/wc+wc-3d-c4-obj1.csv', 'len': 196, 'feature': 4}
-{'name': 'config/SS-B.csv', 'len': 206, 'feature': 5}
-{'name': 'config/SS-H.csv', 'len': 259, 'feature': 6}
-{'name': 'misc/auto93.csv', 'len': 398, 'feature': 8}
-{'name': 'process/pom3a.csv', 'len': 500, 'feature': 12}
-{'name': 'process/pom3b.csv', 'len': 500, 'feature': 12}
-{'name': 'process/pom3c.csv', 'len': 500, 'feature': 12}
-{'name': 'process/pom3d.csv', 'len': 500, 'feature': 12}
+name, len, feature
+process/nasa93dem.csv, 93, 29
+config/Apache_AllMeasurements.csv, 192, 10
+config/SS-D.csv, 196, 5
+config/SS-F.csv, 196, 5
+config/SS-G.csv, 196, 5
+misc/wc+rs-3d-c4-obj1.csv, 196, 4
+misc/wc+sol-3d-c4-obj1.csv, 196, 4
+misc/wc+wc-3d-c4-obj1.csv, 196, 4
+config/SS-B.csv, 206, 5
+config/SS-H.csv, 259, 6
+misc/auto93.csv, 398, 8
+process/pom3a.csv, 500, 12
+process/pom3b.csv, 500, 12
+process/pom3c.csv, 500, 12
+process/pom3d.csv, 500, 12
 
-{'name': 'config/SS-E.csv', 'len': 756, 'feature': 5}
-{'name': 'config/SS-M.csv', 'len': 864, 'feature': 20}
-{'name': 'config/SS-O.csv', 'len': 972, 'feature': 13}
-{'name': 'process/coc1000.csv', 'len': 1000, 'feature': 25}
-{'name': 'config/SS-L.csv', 'len': 1023, 'feature': 13}
-{'name': 'config/SS-P.csv', 'len': 1023, 'feature': 13}
-{'name': 'config/SS-I.csv', 'len': 1080, 'feature': 7}
-{'name': 'config/X264_AllMeasurements.csv', 'len': 1152, 'feature': 17}
-{'name': 'config/SS-A.csv', 'len': 1343, 'feature': 5}
-{'name': 'config/SS-C.csv', 'len': 1512, 'feature': 5}
-{'name': 'misc/Wine_quality.csv', 'len': 1599, 'feature': 12}
-{'name': 'config/SS-Q.csv', 'len': 2736, 'feature': 16}
-{'name': 'misc/sol-6d-c2-obj1.csv', 'len': 2866, 'feature': 7}
-{'name': 'config/SS-K.csv', 'len': 2880, 'feature': 8}
-{'name': 'misc/wc-6d-c1-obj1.csv', 'len': 2880, 'feature': 7}
-{'name': 'config/SS-R.csv', 'len': 3008, 'feature': 16}
-{'name': 'misc/HSMGP_num.csv', 'len': 3456, 'feature': 15}
-{'name': 'config/SS-J.csv', 'len': 3840, 'feature': 8}
-{'name': 'config/SS-S.csv', 'len': 3840, 'feature': 8}
-{'name': 'misc/rs-6d-c3_obj1.csv', 'len': 3840, 'feature': 7}
-{'name': 'misc/rs-6d-c3_obj2.csv', 'len': 3840, 'feature': 7}
+config/SS-E.csv, 756, 5
+config/SS-M.csv, 864, 20
+config/SS-O.csv, 972, 13
+process/coc1000.csv, 1000, 25
+config/SS-L.csv, 1023, 13
+config/SS-P.csv, 1023, 13
+config/SS-I.csv, 1080, 7
+config/X264_AllMeasurements.csv, 1152, 17
+config/SS-A.csv, 1343, 5
+config/SS-C.csv, 1512, 5
+misc/Wine_quality.csv, 1599, 12
+config/SS-Q.csv, 2736, 16
+misc/sol-6d-c2-obj1.csv, 2866, 7
+config/SS-K.csv, 2880, 8
+misc/wc-6d-c1-obj1.csv, 2880, 7
+config/SS-R.csv, 3008, 16
+misc/HSMGP_num.csv, 3456, 15
+config/SS-J.csv, 3840, 8
+config/SS-S.csv, 3840, 8
+misc/rs-6d-c3_obj1.csv, 3840, 7
+misc/rs-6d-c3_obj2.csv, 3840, 7
 
-{'name': 'config/SS-U.csv', 'len': 4608, 'feature': 23}
-{'name': 'config/SQL_AllMeasurements.csv', 'len': 4653, 'feature': 40}
-{'name': 'config/SS-T.csv', 'len': 5184, 'feature': 14}
-{'name': 'config/SS-V.csv', 'len': 6840, 'feature': 18}
-{'name': 'hpo/healthCloseIsses12mths0001-hard.csv', 'len': 10000, 'feature': 8}
-{'name': 'hpo/healthCloseIsses12mths0011-easy.csv', 'len': 10000, 'feature': 8}
-{'name': 'process/xomo_flight.csv', 'len': 10000, 'feature': 31}
-{'name': 'process/xomo_ground.csv', 'len': 10000, 'feature': 31}
-{'name': 'process/xomo_osp.csv', 'len': 10000, 'feature': 31}
-{'name': 'process/xomo_osp2.csv', 'len': 10000, 'feature': 31}
+config/SS-U.csv, 4608, 23
+config/SQL_AllMeasurements.csv, 4653, 40
+config/SS-T.csv, 5184, 14
+config/SS-V.csv, 6840, 18
+hpo/healthCloseIsses12mths0001-hard.csv, 10000, 8
+hpo/healthCloseIsses12mths0011-easy.csv, 10000, 8
+process/xomo_flight.csv, 10000, 31
+process/xomo_ground.csv, 10000, 31
+process/xomo_osp.csv, 10000, 31
+process/xomo_osp2.csv, 10000, 31
 
-{'name': 'config/SS-N.csv', 'len': 53662, 'feature': 19}
-{'name': 'config/SS-W.csv', 'len': 65536, 'feature': 18}
-{'name': 'config/SS-X.csv', 'len': 86058, 'feature': 13}
+config/SS-N.csv, 53662, 19
+config/SS-W.csv, 65536, 18
+config/SS-X.csv, 86058, 13
