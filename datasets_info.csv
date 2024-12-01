@@ -14,7 +14,7 @@ process/pom3a.csv, 500, 12
 process/pom3b.csv, 500, 12
 process/pom3c.csv, 500, 12
 process/pom3d.csv, 500, 12
-
+-,-,-
 config/SS-E.csv, 756, 5
 config/SS-M.csv, 864, 20
 config/SS-O.csv, 972, 13
@@ -36,7 +36,7 @@ config/SS-J.csv, 3840, 8
 config/SS-S.csv, 3840, 8
 misc/rs-6d-c3_obj1.csv, 3840, 7
 misc/rs-6d-c3_obj2.csv, 3840, 7
-
+-,-,-
 config/SS-U.csv, 4608, 23
 config/SQL_AllMeasurements.csv, 4653, 40
 config/SS-T.csv, 5184, 14
@@ -47,7 +47,7 @@ process/xomo_flight.csv, 10000, 31
 process/xomo_ground.csv, 10000, 31
 process/xomo_osp.csv, 10000, 31
 process/xomo_osp2.csv, 10000, 31
-
+-,-,-
 config/SS-N.csv, 53662, 19
 config/SS-W.csv, 65536, 18
 config/SS-X.csv, 86058, 13
