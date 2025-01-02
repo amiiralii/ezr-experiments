@@ -710,6 +710,163 @@ def regression6(dataset, repeats):
   
   return res
 
+
+## Treatments: 
+##    Regressors: asIs, mid-leaf, 1-3-5 Nearest Neighbors, Linear, Lasso, Ridge, SVR, lgbm
+##    Number of Samlples: SQRT(N)
+##    Acq. functions: No Sampling, Diversity, Random Sampling
+## Goal: Regression
+## Metric: Sum of Absolute Value of Standardized Residuals : Sum( ( (real-pred)/sd ) )
+def regression7(dataset, repeats):
+  def random_sampling(todo, done):
+    random.shuffle(todo)
+    return todo
+  
+  def diversity_sampling(todo, done):
+    # For all candidates in todo
+    # Max( Min( dist( candidate , labeled ) ) )
+    def dist_to_dones(todo, done):
+      dists = [1E+30] * len(todo)
+      for i, unlabeled in enumerate(todo):
+        for labeled in done:
+          dst = d.dist(labeled, unlabeled)
+          if dst < dists[i]:
+            dists[i] = dst
+      i = dists.index(max(dists))
+      return dists.index(max(dists))
+    
+    # Pick a random candidate from todo 20 times
+    # Max( Min( dist( candidate , labeled ) ) )
+    def min_max(todo, done):
+      dist_picks = {}
+      for _ in range(the.fars):
+        pick = random.randrange(len(todo))
+        dist_picks[pick] = min(d.dist(labeled, todo[pick]) for labeled in done)
+      i = max(dist_picks, key= lambda x: dist_picks[x])
+      return max(dist_picks, key= lambda x: dist_picks[x])
+
+    #idx = dist_to_dones(todo, done)
+    idx = min_max(todo, done)
+    todo[0], todo[idx] = todo[idx], todo[0]
+    return todo
+
+  t1 = time.time()
+  d = DATA().adds(csv(dataset))
+  
+  somes  = {}
+  for sa in ["non", "RS", "DS"]:
+    for m in ["asIs", "mid-leaf", "k1", "k3", "k5"]:
+      somes[f"{sa},{m}"] = stats.SOME(txt=f"{sa},{m}")
+  
+  times = {}
+  for sa in ["non", "RS", "DS"]:
+    for m in ["asIs", "mid-leaf", "k1", "k3", "k5"]:
+      times[f"{sa},{m}"] = 0
+
+  ## Repeating Experiment
+  for _ in range(repeats):
+    ## Choosing Samlping Method
+    for sampling in ["non", diversity_sampling, random_sampling]:
+      acq = "DS" if sampling==diversity_sampling else "RS" if sampling==random_sampling else "non"
+      ## Choosing sampling rate
+      for stp in [int(sqrt(len(d.rows)))]:
+        random.shuffle(d.rows) 
+        ## K-Fold Cross Validation
+        for samples,test in xval(d.rows):
+          t0 = time.time()
+          if acq != "non":
+            train, _ = d.clone(samples).activeLearning(acquisition = sampling, stop = stp)
+          else:
+            train = samples
+          t1 = time.time()
+
+          for tr in times.keys():
+              if acq in tr: times[tr] += t1-t0
+        
+          models = {
+              "LR"  : baseline.linear, 
+              "LSR" : baseline.lasso, 
+              "RR"  : baseline.ridge,
+              "SVR" : baseline.svr, 
+              "LGBM": baseline.lightgbm
+          }
+          #X_train, y_train, X_test, y_test = baseline.prepare(train, test, [c.txt for c in d.cols.all])
+          #for reg in ["LR", "LSR", "RR", "SVR", "LGBM"]:
+          #  label = f"{acq},{reg}"
+          #  somes[label], times[label] = baseline.calc_baseline3(X_train, y_train, X_test, y_test, somes[label], times[label], models[reg])
+
+
+          t0 = time.time()
+          ## This is where I had to add kmeans algorithm instead of d.cluster()
+          cluster = d.cluster(train, stop = 12)
+          t1 = time.time()
+          dumb_rows = d.clone(random.choices(train, k = 12))
+          dumb_mid = dumb_rows.mid()
+          t2 = time.time()
+
+          for tr in times.keys():
+            if "asIs" in tr and acq in tr: times[tr] += t2-t1
+            elif acq in tr: times[tr] += t1-t0
+
+          ## Iterate through each test row
+          for want in test:
+            std = d.div()
+            leaf = cluster.leaf(d, want)
+            rows = leaf.data.rows
+            mid1  = leaf.data.mid()
+            ## Regression result per each method
+            for treatment in somes.keys():
+              if "asIs" in treatment and acq in treatment:
+                t1 = time.time()
+                for y in d.cols.y:
+                  somes[treatment].add( (want[y.at] - dumb_mid[y.at]) / std[y.at])
+                t2 = time.time()
+                times[treatment] += t2-t1
+
+              if "mid-leaf" in treatment and acq in treatment:
+                t1 = time.time()
+                for y in d.cols.y:
+                  somes[treatment].add( (want[y.at] - mid1[y.at]) / std[y.at])
+                t2 = time.time()
+                times[treatment] += t2-t1
+
+              if "k1" in treatment and acq in treatment:
+                t1 = time.time()
+                pred = d.predict(want, rows, k=1)
+                for y in d.cols.y:
+                  somes[treatment].add( (want[y.at] - pred[y.at]) / std[y.at])
+                t2 = time.time()
+                times[treatment] += t2-t1
+
+              if "k3" in treatment and acq in treatment:
+                t1 = time.time()
+                pred = d.predict(want, rows, k=3)
+                for y in d.cols.y:
+                  somes[treatment].add( (want[y.at] - pred[y.at]) / std[y.at])
+                t2 = time.time()
+                times[treatment] += t2-t1
+
+              if "k5" in treatment and acq in treatment:
+                t1 = time.time()
+                pred = d.predict(want, rows, k=5)
+                for y in d.cols.y:
+                  somes[treatment].add( (want[y.at] - pred[y.at]) / std[y.at])   
+                t2 = time.time()
+                times[treatment] += t2-t1 
+
+
+  ## Export Run Times
+  with open(f"reg7/res/times/{dataset.split('/')[-1]}", 'w') as csv_file:  
+      writer = cc.writer(csv_file)
+      for i,j in dict(sorted(times.items())).items():
+        writer.writerow([i[1:-1], round(j,2)])
+  
+  res = []
+  for m in somes.values():
+    res += [m]
+  
+  return res
+
 dataset = sys.argv[1]
 repeats = 20
-[stats.report( regression6(dataset, repeats) ) ]
+[stats.report( regression7(dataset, repeats) ) ]
