@@ -516,6 +516,47 @@ def diversity(self:DATA, rows:rows=None, stop=None):
     if leafp:
         yield node.mid
 
+@of("Cluster using kmeans++ initialization")
+def kmeansplusplus(self:DATA, rows:rows=None,  count=False):
+  def pick(u):
+    total = sum(u.values())
+    r = random.random()
+    anything = None
+    sorted_t = dict(sorted(u.items(), key=lambda item: item[1], reverse=True))
+    for n, d in sorted_t.items():
+        r -= d / total
+        if r <= 0:
+            return n
+        else:
+            anything = anything or n
+    return anything
+
+  def find_centriods(rows):
+    rand = random.randint(0, len(rows) - 1)
+    centriods = [rows[rand]]
+
+    for _ in range(2, k + 1):
+        u = {}
+        for _ in range( 32 ):
+            r1 = random.randint(0, len(rows) - 1)
+            r2 = min(centriods, key = lambda ru: self.dist(rows[r1], ru))  # who ru closest 2?
+            u[r1] = self.dist(rows[r1], r2) ** 2  # how close are you
+        centriods.append(rows[pick(u)])  # stochastically pick one item
+    return centriods
+
+  k = count or 25
+  rows = rows or self.rows
+  centriods = find_centriods(rows)
+  clusters = []
+  for c in centriods: clusters.append([c])
+  for row in rows:
+    d = 1E+32
+    for i, cl in enumerate(clusters):
+      if self.dist(cl[0], row) < d:
+        d = self.dist(cl[0], row)
+        idx = i
+    clusters[idx].append(row)
+  return clusters
 #
 # ## Bayes
 # of("discretieze.")
