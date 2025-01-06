@@ -750,23 +750,33 @@ def regression7(dataset, repeats):
     todo[0], todo[idx] = todo[idx], todo[0]
     return todo
 
+  def find_leaf(d, clusters, row):
+    min_d, idx = 1E+32, 0
+    for i, cl in enumerate(clusters):
+      distance = d.dist(cl[0], row)
+      if distance < min_d:
+        min_d = distance
+        idx = i
+    return clusters[idx]
+
   t1 = time.time()
   d = DATA().adds(csv(dataset))
   
   somes  = {}
-  for sa in ["non", "RS", "DS"]:
+  for sa in ["non"]:
     for m in ["asIs", "mid-leaf", "k1", "k3", "k5"]:
       somes[f"{sa},{m}"] = stats.SOME(txt=f"{sa},{m}")
   
   times = {}
-  for sa in ["non", "RS", "DS"]:
+  for sa in ["non"]:
     for m in ["asIs", "mid-leaf", "k1", "k3", "k5"]:
       times[f"{sa},{m}"] = 0
 
   ## Repeating Experiment
   for _ in range(repeats):
     ## Choosing Samlping Method
-    for sampling in ["non", diversity_sampling, random_sampling]:
+    ##for sampling in ["non", diversity_sampling, random_sampling]:
+    for sampling in ["non"]:
       acq = "DS" if sampling==diversity_sampling else "RS" if sampling==random_sampling else "non"
       ## Choosing sampling rate
       for stp in [int(sqrt(len(d.rows)))]:
@@ -798,7 +808,8 @@ def regression7(dataset, repeats):
 
           t0 = time.time()
           ## This is where I had to add kmeans algorithm instead of d.cluster()
-          cluster = d.cluster(train, stop = 12)
+          #cluster = d.cluster(train, stop = 12)
+          clusters = d.kmeansplusplus(rows = train, leaf_size = 12)
           t1 = time.time()
           dumb_rows = d.clone(random.choices(train, k = 12))
           dumb_mid = dumb_rows.mid()
@@ -811,9 +822,13 @@ def regression7(dataset, repeats):
           ## Iterate through each test row
           for want in test:
             std = d.div()
-            leaf = cluster.leaf(d, want)
-            rows = leaf.data.rows
-            mid1  = leaf.data.mid()
+            #leaf = cluster.leaf(d, want)
+            leaf = d.clone(find_leaf(d, clusters, want))
+            #rows = leaf.data.rows
+            rows = leaf.rows
+            #mid1  = leaf.data.mid()
+            mid1  = leaf.mid()
+            
             ## Regression result per each method
             for treatment in somes.keys():
               if "asIs" in treatment and acq in treatment:
@@ -859,11 +874,13 @@ def regression7(dataset, repeats):
   with open(f"reg7/res/times/{dataset.split('/')[-1]}", 'w') as csv_file:  
       writer = cc.writer(csv_file)
       for i,j in dict(sorted(times.items())).items():
-        writer.writerow([i[1:-1], round(j,2)])
+        writer.writerow([i.replace("non","kmeans"), round(j,2)])
   
   res = []
   for m in somes.values():
     res += [m]
+  for r in res:
+    r.txt = r.txt.replace("non","kmeans")
   
   return res
 

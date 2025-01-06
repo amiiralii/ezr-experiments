@@ -517,7 +517,7 @@ def diversity(self:DATA, rows:rows=None, stop=None):
         yield node.mid
 
 @of("Cluster using kmeans++ initialization")
-def kmeansplusplus(self:DATA, rows:rows=None,  count=False):
+def kmeansplusplus(self:DATA, rows:rows=None,  leaf_size=False):
   def pick(u):
     total = sum(u.values())
     r = random.random()
@@ -531,10 +531,9 @@ def kmeansplusplus(self:DATA, rows:rows=None,  count=False):
             anything = anything or n
     return anything
 
-  def find_centriods(rows):
+  def find_centriods(rows, k):
     rand = random.randint(0, len(rows) - 1)
     centriods = [rows[rand]]
-
     for _ in range(2, k + 1):
         u = {}
         for _ in range( 32 ):
@@ -544,9 +543,10 @@ def kmeansplusplus(self:DATA, rows:rows=None,  count=False):
         centriods.append(rows[pick(u)])  # stochastically pick one item
     return centriods
 
-  k = count or 25
   rows = rows or self.rows
-  centriods = find_centriods(rows)
+  k = len(rows) // leaf_size if (len(rows) // leaf_size < 5) else 25
+
+  centriods = find_centriods(rows, k)
   clusters = []
   for c in centriods: clusters.append([c])
   for row in rows:
