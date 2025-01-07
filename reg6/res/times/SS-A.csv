@@ -26,5 +26,9 @@
 "non,k1",77.83
 "non,k3",78.66
 "non,k5",79.53
+"kmeans,mid-leaf",88.06
+"kmeans,k1",121.56
+"kmeans,k3",121.7
+"kmeans,k5",123.01
 "non,SVR",143.81
 "non,LGBM",241.41

@@ -19,6 +19,7 @@
 "DS,k1",130.54
 "DS,k3",133.86
 "DS,k5",137.37
+"kmeans,mid-leaf",248.84
 "non,mid-leaf",276.05
 "non,RR",276.86
 "non,LSR",276.95
@@ -28,3 +29,6 @@
 "non,k3",339.76
 "non,k5",343.34
 "non,SVR",519.78
+"kmeans,k1",617.82
+"kmeans,k3",618.54
+"kmeans,k5",622.48
