@@ -1,5 +1,5 @@
-"kmeans,asIs",0.18
-"kmeans,k1",33.59
-"kmeans,k3",33.73
-"kmeans,k5",34.01
-"kmeans,mid-leaf",30.94
+"kmeans,asIs",0.01
+"kmeans,k1",1.01
+"kmeans,k3",1.01
+"kmeans,k5",1.03
+"kmeans,mid-leaf",0.95

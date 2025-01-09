@@ -1,0 +1,33 @@
+"DS,LGBM", 5.78
+"DS,LR", 5.58
+"DS,LSR", 5.59
+"DS,RR", 5.58
+"DS,SVR", 5.63
+"DS,asIs", 5.44
+"DS,k1", 7.36
+"DS,k3", 7.53
+"DS,k5", 7.72
+"DS,mid-leaf", 5.54
+"RS,LGBM", 2.18
+"RS,LR", 2.07
+"RS,LSR", 2.07
+"RS,RR", 2.06
+"RS,SVR", 2.11
+"RS,asIs", 1.92
+"RS,k1", 3.84
+"RS,k3", 4.01
+"RS,k5", 4.20
+"RS,mid-leaf", 2.02
+"kmeans,k1", 1.80
+"kmeans,k3", 1.97
+"kmeans,k5", 2.16
+"non,LGBM",17.03
+"non,LR",15.22
+"non,LSR",15.43
+"non,RR",15.22
+"non,SVR",28.27
+"non,asIs",0.030
+"non,k1",18.22
+"non,k3",18.32
+"non,k5",18.51
+"non,mid-leaf",15.11

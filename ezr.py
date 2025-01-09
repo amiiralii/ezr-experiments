@@ -531,32 +531,41 @@ def kmeansplusplus(self:DATA, rows:rows=None,  leaf_size=False):
             anything = anything or n
     return anything
 
-  def find_centriods(rows, k):
+  def find_centroids(rows, k):
     rand = random.randint(0, len(rows) - 1)
-    centriods = [rows[rand]]
+    centroids = [rows[rand]]
     for _ in range(2, k + 1):
         u = {}
-        for _ in range( 32 ):
+        for _ in range( 30 ):
             r1 = random.randint(0, len(rows) - 1)
-            r2 = min(centriods, key = lambda ru: self.dist(rows[r1], ru))  # who ru closest 2?
+            r2 = min(centroids, key = lambda ru: self.dist(rows[r1], ru))  # who ru closest 2?
             u[r1] = self.dist(rows[r1], r2) ** 2  # how close are you
-        centriods.append(rows[pick(u)])  # stochastically pick one item
-    return centriods
+        centroids.append(rows[pick(u)])  # stochastically pick one item
+    return centroids
 
+  def build_clusters(centroids, rows):
+    clusters = []
+    for c in centroids: clusters.append([c])
+    max_d = max(self.dist(centroids[r1],centroids[r2]) 
+                for r1 in range(len(centroids)) 
+                for r2 in range(r1, len(centroids)) )
+    for c in clusters:
+      threshhold = max_d * 0.3
+      neighbors = []
+      for _ in range(20):
+        r1 = one(rows)
+        while self.dist(r1, c[0]) > threshhold:
+          r1 = one(rows)
+          threshhold *= 1.05
+        neighbors.append({"dist":self.dist(r1, c[0]), "row": r1})
+      a = sorted(neighbors, key = lambda n:n["dist"])
+      for i in range(5): c.append(a[i]["row"])
+    
+    return clusters
+  
   rows = rows or self.rows
-  k = len(rows) // leaf_size if (len(rows) // leaf_size < 5) else 25
-
-  centriods = find_centriods(rows, k)
-  clusters = []
-  for c in centriods: clusters.append([c])
-  for row in rows:
-    d = 1E+32
-    for i, cl in enumerate(clusters):
-      if self.dist(cl[0], row) < d:
-        d = self.dist(cl[0], row)
-        idx = i
-    clusters[idx].append(row)
-  return clusters
+  k = len(rows) // leaf_size if (len(rows) // leaf_size < 5) else 20  
+  return build_clusters( find_centroids(rows, k) , rows)
 #
 # ## Bayes
 # of("discretieze.")
