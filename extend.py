@@ -1099,5 +1099,5 @@ def test(dataset):
   input()
 
 dataset = sys.argv[1]
-repeats = 1
+repeats = 20
 [stats.report( regression8(dataset, repeats) ) ]

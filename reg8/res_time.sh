@@ -8,7 +8,7 @@ for file in res/times/*.csv; do
     # Sort each file by the third field (numeric sort) and save it in place
     sort -t',' -k3,3n "$file" -o "$file"
   else
-    echo "No CSV files found."
+    echo "$file No CSV files found."
     exit 1
   fi
 done

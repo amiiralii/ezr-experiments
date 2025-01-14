@@ -1,33 +1,33 @@
-"DS,LGBM", 5.78
-"DS,LR", 5.58
-"DS,LSR", 5.59
-"DS,RR", 5.58
-"DS,SVR", 5.63
-"DS,asIs", 5.44
-"DS,k1", 7.36
-"DS,k3", 7.53
-"DS,k5", 7.72
-"DS,mid-leaf", 5.54
-"RS,LGBM", 2.18
-"RS,LR", 2.07
-"RS,LSR", 2.07
-"RS,RR", 2.06
-"RS,SVR", 2.11
-"RS,asIs", 1.92
-"RS,k1", 3.84
-"RS,k3", 4.01
-"RS,k5", 4.20
-"RS,mid-leaf", 2.02
-"kmeans,k1", 1.80
-"kmeans,k3", 1.97
-"kmeans,k5", 2.16
-"non,LGBM",17.03
-"non,LR",15.22
-"non,LSR",15.43
-"non,RR",15.22
-"non,SVR",28.27
-"non,asIs",0.030
-"non,k1",18.22
-"non,k3",18.32
-"non,k5",18.51
-"non,mid-leaf",15.11
+"non,asIs",1.08
+"kmeans,k1",72.27
+"kmeans,k3",79.61
+"kmeans,k5",87.59
+"RS,asIs",89.38
+"RS,mid-leaf",94.46
+"RS,RR",95.94
+"RS,LR",96.08
+"RS,LSR",96.25
+"RS,SVR",97.99
+"RS,k1",185.38
+"RS,k3",193.73
+"RS,k5",202.58
+"DS,asIs",254.05
+"DS,mid-leaf",259.03
+"DS,RR",260.56
+"DS,LR",260.69
+"DS,LSR",260.88
+"DS,SVR",262.62
+"DS,k1",348.69
+"DS,k3",357.04
+"DS,k5",366.14
+"RS,LGBM",439.82
+"DS,LGBM",553.33
+"non,mid-leaf",590.93
+"non,RR",593.0
+"non,LR",596.73
+"non,LSR",597.34
+"non,k1",724.31
+"non,k3",730.06
+"non,k5",737.38
+"non,SVR",1048.15
+"non,LGBM",2162.96
