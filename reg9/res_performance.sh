@@ -4,7 +4,7 @@
 declare -A counts
 
 # Loop through all CSV files in the current directory
-for file in res/*.csv; do
+for file in res-d2h/*.csv; do
     # Read each line of the file
     while IFS=',' read -r rank treatment rest; do
         # Trim whitespace from rank and treatment
@@ -52,7 +52,7 @@ for treatment in "${!consolidated[@]}"; do
 done
 
 # Sort by `count0` (third column, numerically, descending)
-sorted_file="performance_res.csv"
+sorted_file="performance_res_d2h.csv"
 head -n 1 "$temp_file" > "$sorted_file" # Add the header
 tail -n +2 "$temp_file" | sort -t',' -k4,4nr >> "$sorted_file"
 
