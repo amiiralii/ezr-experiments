@@ -517,7 +517,7 @@ def diversity(self:DATA, rows:rows=None, stop=None):
         yield node.mid
 
 @of("Cluster using kmeans++ initialization")
-def kmeansplusplus(self:DATA, rows:rows=None,  leaf_size=False):
+def kmeansplusplus(self:DATA, rows:rows=None, neighbors=5):
   def pick(u):
     total = sum(u.values())
     r = random.random()
@@ -543,9 +543,12 @@ def kmeansplusplus(self:DATA, rows:rows=None,  leaf_size=False):
         centroids.append(rows[pick(u)])  # stochastically pick one item
     return centroids
 
-  def build_clusters(centroids, rows):
+  def build_clusters(centroids, rows, n_neighbors):
     clusters = []
     for c in centroids: clusters.append([c])
+    if n_neighbors == 1:
+      return clusters
+    
     max_d = max(self.dist(centroids[r1],centroids[r2]) 
                 for r1 in range(len(centroids)) 
                 for r2 in range(r1, len(centroids)) )
@@ -559,13 +562,13 @@ def kmeansplusplus(self:DATA, rows:rows=None,  leaf_size=False):
           threshhold *= 1.05
         neighbors.append({"dist":self.dist(r1, c[0]), "row": r1})
       a = sorted(neighbors, key = lambda n:n["dist"])
-      for i in range(5): c.append(a[i]["row"])
+      for i in range(n_neighbors): c.append(a[i]["row"])
     
     return clusters
   
   rows = rows or self.rows
-  k = len(rows) // leaf_size if (len(rows) // leaf_size < 5) else 20  
-  return build_clusters( find_centroids(rows, k) , rows)
+  k = 10 if (len(rows) < 200) else 20
+  return build_clusters( find_centroids(rows, k) , rows, neighbors)
 #
 # ## Bayes
 # of("discretieze.")

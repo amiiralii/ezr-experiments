@@ -59,8 +59,9 @@ def export(df_y, results, time, dataset, algo):
         os.mkdir(dataset.replace('data', 'results')[:-4])
     except:
         pass
-
-    with open(f'{dataset.replace('data', 'results')[:-4]}/{algo}-{dataset.split('/')[-1]}', 'w', newline='') as f:    
+    aa = dataset.replace('data', 'results')[:-4]
+    bb = dataset.split('/')[-1]
+    with open(f'{aa}/{algo}-{bb}', 'w', newline='') as f:    
         write = csv.writer(f)
         df_y.append('Time')
         write.writerow([y for y in df_y])

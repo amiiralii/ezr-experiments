@@ -167,10 +167,6 @@ def report(somes,epsilon=0.01,fmt="%5.2f"):
   last = None
   #print(SOME(inits=[x for some in somes for x in some._has]).div()*the.stats.cohen)
   for some in sk(somes,epsilon):
-    print(some.txt)
-    for ii in some._has:
-      print(ii)
-
     if some.rank != last: print("#")
     last=some.rank
     print(all.bar(some,width=40,word="%20s", fmt=fmt))

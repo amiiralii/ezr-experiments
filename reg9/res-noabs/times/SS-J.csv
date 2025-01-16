@@ -1,0 +1,7 @@
+"kmeans-1,k1",1.26
+"kmeans-3,k1",1.37
+"kmeans-3,k3",1.92
+"kmeans-5,k1",1.36
+"kmeans-5,k3",1.9
+"kmeans-5,k5",2.33
+"non,asIs",0.03

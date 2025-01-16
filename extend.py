@@ -711,7 +711,7 @@ def regression6(dataset, repeats):
   return res
 
 
-## Treatments: 
+## Treatments: WRONG EXPERIMENT
 ##    Regressors: asIs, mid-leaf, 1-3-5 Nearest Neighbors - all over Kmeans with kmeans++ initialization
 ##    Number of Samlples: SQRT(N)
 ##    Acq. functions: No Sampling
@@ -888,7 +888,8 @@ def regression7(dataset, repeats):
 ## Treatments: 
 ##    Regressors: asIs, mid-leaf, 1-3-5 Nearest Neighbors, Linear, Lasso, Ridge, SVR, lgbm
 ##    Number of Samlples: SQRT(N)
-##    Acq. functions: No Sampling, Diversity, Random Sampling, kmeans++
+##    Acq. functions: No Sampling, Diversity, Random Sampling
+##    Main treatment: kmeans (Kmeans++ centroid, neighbor approx method, (1-3-5)NN for prediction)
 ## Goal: Regression
 ## Metric: Sum of Absolute Value of Standardized Residuals : Sum( ( (real-pred)/sd ) )
 def regression8(dataset, repeats):
@@ -1091,6 +1092,133 @@ def regression8(dataset, repeats):
   return res
 
 
+## Treatments: 
+##    Regressors: asIs
+##    Number of Samlples: ---
+##    Acq. functions: No Sampling
+##    Treatment: asIs, kmeans with approx neighbors, kmeans without approx neighbors
+## Goal: Regression
+## Metric: Sum of Absolute Value of Standardized Residuals : Sum( ( (real-pred)/sd ) )
+def regression9(dataset, repeats):
+  def find_leaf(d, clusters, row):
+    min_d, idx = 1E+32, 0
+    for i, cl in enumerate(clusters):
+      distance = d.dist(cl[0], row)
+      if distance < min_d:
+        min_d = distance
+        idx = i
+    return clusters[idx]
+  
+  t1 = time.time()
+  d = DATA().adds(csv(dataset))
+  
+  somes  = {}
+  for sa in ["kmeans-1", "kmeans-3", "kmeans-5", "non"]:
+    for m in ["asIs", "k1", "k3", "k5"]:
+      if "kmeans" in sa:
+        if m[0]=="k" and int(m[-1]) <= int(sa[-1]): somes[f"{sa},{m}"] = stats.SOME(txt=f"{sa},{m}")
+      elif m[0]!="k": 
+        somes[f"{sa},{m}"] = stats.SOME(txt=f"{sa},{m}")
+
+  d2h_somes  = {}
+  for sa in ["kmeans-1", "kmeans-3", "kmeans-5", "non"]:
+    for m in ["asIs", "k1", "k3", "k5"]:
+      if "kmeans" in sa:
+        if m[0]=="k" and int(m[-1]) <= int(sa[-1]): d2h_somes[f"{sa},{m}"] = stats.SOME(txt=f"{sa},{m}")
+      elif m[0]!="k": 
+        d2h_somes[f"{sa},{m}"] = stats.SOME(txt=f"{sa},{m}")
+    
+  
+  times = {}
+  for sa in ["kmeans-1", "kmeans-3", "kmeans-5", "non"]:
+    for m in ["asIs", "k1", "k3", "k5"]:
+      if "kmeans" in sa:
+        if m[0]=="k" and int(m[-1]) <= int(sa[-1]): times[f"{sa},{m}"] = 0
+      elif m[0]!="k": 
+        times[f"{sa},{m}"] = 0
+
+  ## Repeating Experiment
+  for _ in range(repeats):
+    random.shuffle(d.rows) 
+    ## K-Fold Cross Validation
+    for train,test in xval(d.rows):
+        t1 = time.time()
+        dumb_rows = d.clone(random.choices(train, k = 12))
+        dumb_mid = dumb_rows.mid()
+        t2 = time.time()
+        cluster_kmeans_1 = d.kmeansplusplus(rows = train, neighbors=1)
+        t3 = time.time()
+        cluster_kmeans_3 = d.kmeansplusplus(rows = train, neighbors=3)
+        t4 = time.time()
+        cluster_kmeans_5 = d.kmeansplusplus(rows = train, neighbors=5)
+        t5 = time.time()
+
+        for tr in times.keys():
+          if "asIs" in tr : times[tr] += t2-t1
+          elif "kmeans-1" in tr : times[tr] += t3-t2
+          elif "kmeans-3" in tr : times[tr] += t4-t3
+          elif "kmeans-5" in tr : times[tr] += t5-t4
+          
+
+        ## Iterate through each test row
+        for want in test:
+          std = d.div()
+          leaf_kmeans_1 = d.clone(find_leaf(d, cluster_kmeans_1, want)).rows
+          leaf_kmeans_3 = d.clone(find_leaf(d, cluster_kmeans_3, want)).rows
+          leaf_kmeans_5 = d.clone(find_leaf(d, cluster_kmeans_5, want)).rows
+
+          ## Regression result per each method
+          for treatment in somes.keys():
+            if "asIs" in treatment:
+              t1 = time.time()
+              d2h_somes[treatment].add( abs(d.d2h(want) - d.d2h(dumb_mid)) )
+              for y in d.cols.y:
+                somes[treatment].add( abs(want[y.at] - dumb_mid[y.at]) / std[y.at])
+              t2 = time.time()
+              times[treatment] += t2-t1
+
+            if "k1" in treatment:
+              t1 = time.time()
+              pred = d.predict(want, leaf_kmeans_1, k=1)
+              d2h_somes[treatment].add( abs(d.d2h(want) - d.d2h(pred)) )
+              for y in d.cols.y:
+                somes[treatment].add( abs(want[y.at] - pred[y.at]) / std[y.at])
+              t2 = time.time()
+              times[treatment] += t2-t1
+            
+            if "k3" in treatment:
+              t1 = time.time()
+              pred = d.predict(want, leaf_kmeans_3, k=3)
+              d2h_somes[treatment].add( abs(d.d2h(want) - d.d2h(pred)) )
+              for y in d.cols.y:
+                somes[treatment].add( abs(want[y.at] - pred[y.at]) / std[y.at])
+              t2 = time.time()
+              times[treatment] += t2-t1
+
+            if "k5" in treatment:
+              t1 = time.time()
+              pred = d.predict(want, leaf_kmeans_5, k=5)
+              d2h_somes[treatment].add( abs(d.d2h(want) - d.d2h(pred)) )
+              for y in d.cols.y:
+                somes[treatment].add( abs(want[y.at] - pred[y.at]) / std[y.at])
+              t2 = time.time()
+              times[treatment] += t2-t1
+
+
+  ## Export Run Times
+  with open(f"reg9/res/times/{dataset.split('/')[-1]}", 'w') as csv_file:  
+      writer = cc.writer(csv_file)
+      for i,j in dict(sorted(times.items())).items():
+        writer.writerow([i, round(j,2)])
+  
+  res = []
+  for m in d2h_somes.values():
+    res += [m]
+  
+  return res
+
+
+
 def test(dataset):
   d = DATA().adds(csv(dataset))
   cluster_kmeans = d.kmeansplusplus(rows = d.rows, leaf_size = 12)
@@ -1099,5 +1227,5 @@ def test(dataset):
   input()
 
 dataset = sys.argv[1]
-repeats = 20
-[stats.report( regression8(dataset, repeats) ) ]
+repeats = 1
+[stats.report( regression9(dataset, repeats) ) ]
