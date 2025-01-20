@@ -1120,6 +1120,14 @@ def regression9(dataset, repeats):
       elif m[0]!="k": 
         somes[f"{sa},{m}"] = stats.SOME(txt=f"{sa},{m}")
 
+  abs_somes  = {}
+  for sa in ["kmeans-1", "kmeans-3", "kmeans-5", "non"]:
+    for m in ["asIs", "k1", "k3", "k5"]:
+      if "kmeans" in sa:
+        if m[0]=="k" and int(m[-1]) <= int(sa[-1]): abs_somes[f"{sa},{m}"] = stats.SOME(txt=f"{sa},{m}")
+      elif m[0]!="k": 
+        abs_somes[f"{sa},{m}"] = stats.SOME(txt=f"{sa},{m}")
+
   d2h_somes  = {}
   for sa in ["kmeans-1", "kmeans-3", "kmeans-5", "non"]:
     for m in ["asIs", "k1", "k3", "k5"]:
@@ -1143,7 +1151,7 @@ def regression9(dataset, repeats):
     ## K-Fold Cross Validation
     for train,test in xval(d.rows):
         t1 = time.time()
-        dumb_rows = d.clone(random.choices(train, k = 12))
+        dumb_rows = d.clone(random.choices(train, k = 20))
         dumb_mid = dumb_rows.mid()
         t2 = time.time()
         cluster_kmeans_1 = d.kmeansplusplus(rows = train, neighbors=1)
@@ -1173,7 +1181,8 @@ def regression9(dataset, repeats):
               t1 = time.time()
               d2h_somes[treatment].add( abs(d.d2h(want) - d.d2h(dumb_mid)) )
               for y in d.cols.y:
-                somes[treatment].add( abs(want[y.at] - dumb_mid[y.at]) / std[y.at])
+                abs_somes[treatment].add( abs(want[y.at] - dumb_mid[y.at]) / std[y.at])
+                somes[treatment].add( (want[y.at] - dumb_mid[y.at]) / std[y.at])
               t2 = time.time()
               times[treatment] += t2-t1
 
@@ -1182,7 +1191,8 @@ def regression9(dataset, repeats):
               pred = d.predict(want, leaf_kmeans_1, k=1)
               d2h_somes[treatment].add( abs(d.d2h(want) - d.d2h(pred)) )
               for y in d.cols.y:
-                somes[treatment].add( abs(want[y.at] - pred[y.at]) / std[y.at])
+                abs_somes[treatment].add( abs(want[y.at] - dumb_mid[y.at]) / std[y.at])
+                somes[treatment].add( (want[y.at] - dumb_mid[y.at]) / std[y.at])
               t2 = time.time()
               times[treatment] += t2-t1
             
@@ -1191,7 +1201,8 @@ def regression9(dataset, repeats):
               pred = d.predict(want, leaf_kmeans_3, k=3)
               d2h_somes[treatment].add( abs(d.d2h(want) - d.d2h(pred)) )
               for y in d.cols.y:
-                somes[treatment].add( abs(want[y.at] - pred[y.at]) / std[y.at])
+                abs_somes[treatment].add( abs(want[y.at] - dumb_mid[y.at]) / std[y.at])
+                somes[treatment].add( (want[y.at] - dumb_mid[y.at]) / std[y.at])
               t2 = time.time()
               times[treatment] += t2-t1
 
@@ -1200,7 +1211,8 @@ def regression9(dataset, repeats):
               pred = d.predict(want, leaf_kmeans_5, k=5)
               d2h_somes[treatment].add( abs(d.d2h(want) - d.d2h(pred)) )
               for y in d.cols.y:
-                somes[treatment].add( abs(want[y.at] - pred[y.at]) / std[y.at])
+                abs_somes[treatment].add( abs(want[y.at] - dumb_mid[y.at]) / std[y.at])
+                somes[treatment].add( (want[y.at] - dumb_mid[y.at]) / std[y.at])
               t2 = time.time()
               times[treatment] += t2-t1
 
@@ -1211,11 +1223,19 @@ def regression9(dataset, repeats):
       for i,j in dict(sorted(times.items())).items():
         writer.writerow([i, round(j,2)])
   
-  res = []
+  d2h_res = []
   for m in d2h_somes.values():
-    res += [m]
+    d2h_res += [m]
+
+  noabs_res = []
+  for m in somes.values():
+    noabs_res += [m]
+
+  abs_res = []
+  for m in abs_somes.values():
+    abs_res += [m]
   
-  return res
+  return noabs_res, abs_res, d2h_res
 
 
 
@@ -1227,5 +1247,13 @@ def test(dataset):
   input()
 
 dataset = sys.argv[1]
-repeats = 1
-[stats.report( regression9(dataset, repeats) ) ]
+repeats = 20
+noabs , abs, d2h = regression9(dataset, repeats)
+
+print(" ++ Standard Residual without abs:")
+[stats.report( noabs )]
+print("\n\n ++ Standard Residual with abs:")
+[stats.report( abs )]
+print("\n\n ++ d2h differences:")
+[stats.report( d2h )]
+

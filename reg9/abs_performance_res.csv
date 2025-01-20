@@ -1,8 +1,0 @@
-Sampling, Regressor,rank0,count0,rank1,count1,rank2,count2
-kmeans-1,k1,rank0,42,rank1,3,rank2,3
-kmeans-3,k1,rank0,41,rank1,4,rank2,3
-kmeans-5,k1,rank0,41,rank1,3,rank2,3
-kmeans-5,k5,rank0,39,rank1,7,rank2,1
-kmeans-3,k3,rank0,38,rank1,8,rank2,2
-kmeans-5,k3,rank0,38,rank1,9,rank2,1
-non,asIs,rank0,13,rank1,19,rank2,11
