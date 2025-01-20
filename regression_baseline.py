@@ -13,6 +13,7 @@ import csv
 import os
 import stats
 
+
 def mape(y_true, y_pred):
     return np.mean( np.abs(y_pred - y_true) / np.abs(y_true))
 
@@ -163,17 +164,30 @@ def prepare(train, test, cols):
     
     return X_train, y_train, X_test, y_test
 
-def calc_baseline3(X_train, y_train, X_test, y_test, stat, runtime, model):
+def calc_baseline3(X_train, y_train, X_test, y_test, stat1, stat2, stat3, runtime, model, d):
+    preds = []
     for target_column in y_train.columns:
         t1 = time.time()
         y_pred = model( X_train, y_train[target_column], X_test)
+        preds.append(y_pred)
         runtime += time.time()-t1
 
         sdv = y_train[target_column].std()
         for idx in range(len(y_test)):
-            stat.add( (y_test[target_column].iloc[idx] - y_pred[idx])/sdv)
+            stat1.add( (y_test[target_column].iloc[idx] - y_pred[idx])/sdv)
+            stat2.add( abs(y_test[target_column].iloc[idx] - y_pred[idx])/sdv)
 
-    return stat, runtime
+    transposed = np.array(preds).T
+    transposed2 = np.array(y_test)
+    for i,j in zip(transposed, transposed2):
+        p1,p2 = {},{}
+        l = 1 + len(d.cols.x)
+        for y in d.cols.y:
+            p1[y.at] = float( i[y.at - l])
+            p2[y.at] = float( j[y.at - l])
+        stat3.add( abs(d.d2h(p1) - d.d2h(p2))/sdv)
+
+    return stat1, stat2, stat3, runtime
 
 #print("started.")
 #calc_baseline('linear', 'data/hpo/healthCloseIsses12mths0001-hard.csv')
