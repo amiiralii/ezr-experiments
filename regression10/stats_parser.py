@@ -31,3 +31,4 @@ for filename in os.listdir(f"{directory}/res/"):
                     stat = []
                 else:
                     stat.append(content[i])
+print("Done!")

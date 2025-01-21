@@ -1,0 +1,25 @@
+Sampling, Regressor,rank0,count0,rank1,count1,rank2,count2,rank3,count3,rank4,count4,rank5,count5,rank6,count6,rank7,count7
+DS,SVR,rank0,38,rank1,0,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+RS,LGBM,rank0,38,rank1,0,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+non,LGBM,rank0,38,rank1,0,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+RS,SVR,rank0,37,rank1,1,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+DS,LGBM,rank0,36,rank1,2,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+non,SVR,rank0,36,rank1,2,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+kmeans-5,k1,rank0,34,rank1,4,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+kmeans-1,k1,rank0,32,rank1,5,rank2,1,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+kmeans-3,k1,rank0,32,rank1,5,rank2,1,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+kmeans-5,k3,rank0,32,rank1,5,rank2,1,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+non,LSR,rank0,32,rank1,5,rank2,1,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+DS,LSR,rank0,31,rank1,7,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+RS,LR,rank0,31,rank1,7,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+kmeans-5,k5,rank0,31,rank1,6,rank2,1,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+DS,LR,rank0,30,rank1,8,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+DS,RR,rank0,30,rank1,8,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+RS,LSR,rank0,30,rank1,8,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+RS,RR,rank0,30,rank1,8,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+kmeans-3,k3,rank0,30,rank1,7,rank2,1,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+non,LR,rank0,30,rank1,8,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+non,asIs,rank0,29,rank1,9,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+DS,asIs,rank0,28,rank1,10,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+RS,asIs,rank0,28,rank1,10,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
+non,RR,rank0,28,rank1,10,rank2,0,rank3,0,rank4,0,rank5,0,rank6,0,rank7,0
