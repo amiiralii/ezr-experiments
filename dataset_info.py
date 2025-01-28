@@ -30,7 +30,7 @@ lst = []
 ###  num/cat = Numeric to Categorical Ratio
 ###  WIR = Worst Imbalance Ratio
 ###  WDST = Worst Distribution : m2/sd
-lst.append(["Dataset Name","xcols","ycols","rows", "dimension", "num/catX", "num/catY", "WIRX", "WIRY", "WDSTX", "WDSTY"])
+lst.append(["Dataset Name","xcols","ycols","rows", "dimension", "cat/numX", "cat/numY", "WIRX", "WIRY", "WDSTX", "WDSTY"])
 for dir in os.listdir(f"{directory}/data/optimize/"):
     for dataset in os.listdir(f"{directory}/data/optimize/{dir}"):
         if dataset[-4:]=='.csv':
