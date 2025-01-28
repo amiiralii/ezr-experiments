@@ -27,7 +27,7 @@ the fewest number of goal values?
     -h --help          show help                    = False  
     -i --iter   int    length of done minus label   = 0 
     -k --k      int    low frequency Bayes hack     = 1   
-    -l --label  int    initial number of labels     = 4   
+    -l --label  int    initial number of labels     = 5   
     -m --m      int    low frequency Bayes hack     = 2   
     -p --p      int    distance formula exponent    = 2   
     -s --seed   int    random number seed           = 1234567891   
@@ -362,6 +362,11 @@ def dist(self:DATA, r1:row, r2:row) -> float:
   n = sum(c.dist(r1[c.at], r2[c.at])**the.p for c in self.cols.x)
   return (n / len(self.cols.x))**(1/the.p)
 
+@of("Euclidean distance between Goal values of two rows.")
+def disty(self:DATA, r1:row, r2:row) -> float:
+  n = sum(c.dist(r1[c.at], r2[c.at])**the.p for c in self.cols.y)
+  return (n / len(self.cols.y))**(1/the.p)
+
 @of("Sort rows randomly")
 def shuffle(self:DATA) -> DATA:
   random.shuffle(self.rows)
@@ -517,7 +522,7 @@ def diversity(self:DATA, rows:rows=None, stop=None):
         yield node.mid
 
 @of("Cluster using kmeans++ initialization")
-def kmeansplusplus(self:DATA, rows:rows=None, neighbors=5):
+def kmeansplusplus(self:DATA, rows:rows=None, neighbors=5, center=False):
   def pick(u):
     total = sum(u.values())
     r = random.random()
@@ -532,9 +537,9 @@ def kmeansplusplus(self:DATA, rows:rows=None, neighbors=5):
     return anything
 
   def find_centroids(rows, k):
-    rand = random.randint(0, len(rows) - 1)
-    centroids = [rows[rand]]
-    for _ in range(2, k + 1):
+    centroids = []
+    centroids += [k for k in self.twoFar(rows)]
+    for _ in range(3, k + 1):
         u = {}
         for _ in range( 30 ):
             r1 = random.randint(0, len(rows) - 1)
@@ -568,6 +573,7 @@ def kmeansplusplus(self:DATA, rows:rows=None, neighbors=5):
   
   rows = rows or self.rows
   k = 10 if (len(rows) < 200) else 20
+  if center: return find_centroids(rows, the.label), rows
   return build_clusters( find_centroids(rows, k) , rows, neighbors)
 #
 # ## Bayes
@@ -649,7 +655,7 @@ def like(self:NUM, x:number, prior=None) -> float:
 #
 # ### Active Learning
 @of("active learning")
-def activeLearning(self:DATA, score=lambda B,R: B-R, generate=None, faster=True, acquisition = None, adopt = None, stop = None):
+def activeLearning(self:DATA, score=lambda B,R: B-R, generate=None, faster=True, acquisition = None, adopt = None, stop = None, warm = "random"):
   def ranked(rows): return self.clone(rows).chebyshevs().rows
 
   def todos(todo):
@@ -682,7 +688,11 @@ def activeLearning(self:DATA, score=lambda B,R: B-R, generate=None, faster=True,
       done      = ranked(done)
     return done, todo
   
-  todo, done = self.rows[the.label:], ranked(self.rows[:the.label])
+  #todo, done = self.rows[the.label:], ranked(self.rows[:the.label])
+  if warm == "random":
+    todo, done = self.rows[the.label:], self.rows[:the.label]
+  else:  
+    todo, done = self.kmeansplusplus(rows = self.rows, center = True)
 
   if the.branch == True:
     todo, done = self.branch(used = [])
