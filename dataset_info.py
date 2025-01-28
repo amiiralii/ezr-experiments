@@ -31,13 +31,12 @@ lst = []
 ###  WIR = Worst Imbalance Ratio
 ###  WDST = Worst Distribution : m2/sd
 lst.append(["Dataset Name","xcols","ycols","rows", "dimension", "num/catX", "num/catY", "WIRX", "WIRY", "WDSTX", "WDSTY"])
-print(lst[-1])
 for dir in os.listdir(f"{directory}/data/optimize/"):
     for dataset in os.listdir(f"{directory}/data/optimize/{dir}"):
         if dataset[-4:]=='.csv':
             d = DATA().adds(csv(f"{directory}/data/optimize/{dir}/{dataset}"))
             lst.append([dataset[:-4], len(d.cols.x), len(d.cols.y), len(d.rows), round(len(d.rows)/len(d.cols.all),2), cat_ratio(d.cols.x), cat_ratio(d.cols.y), wir(d.cols.x), wir(d.cols.y), wd(d.cols.x), wd(d.cols.y)])
-            input(lst[-1])
+        print(dataset, "done!")
             
 print("Derived!")
 df = pd.DataFrame(lst)
