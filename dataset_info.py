@@ -5,7 +5,7 @@ import pandas as pd
 from ezr import the, DATA, csv, xval, activeLearning, rows, dist
 
 def cat_ratio(cols):
-    return str(sum([ "SYM" in str(type(k)) for k in cols])) + '/' + str(sum([ "NUM" in str(type(k)) for k in cols]))
+    return str( sum([1 for k in cols if "SYM" in str(type(k))]) ) + '/' + str( sum([1 for k in cols if "NUM" in str(type(k))]) )
 
 def wir(cols):
     wir = 2
