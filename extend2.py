@@ -60,7 +60,7 @@ def regression(dataset):
     d = DATA().adds(csv(dataset))
 
     somes, abs_somes, d2h_somes, times  = {}, {}, {}, {}
-    for sa in ["non", "RS", "DS", "kmeans-1", "kmeans-3", "kmeans-5"]:
+    for sa in ["non", "RS", "DS", "DS2", "kmeans-1", "kmeans-3", "kmeans-5"]:
         for m in ["asIs", "LR", "LSR", "RR", "SVR", "LGBM", "k1", "k3", "k5"]:
             if "kmeans" in sa:
                 if m[0]=="k" and int(m[-1]) <= int(sa[-1]):
@@ -76,16 +76,19 @@ def regression(dataset):
 
 
     ## Choosing Samlping Method
-    for sampling in ["non", "DS", "RS", "kmeans"]:
+    for sampling in ["non", "DS", "DS2", "RS", "kmeans"]:
         
-        acq = diversity_sampling if sampling=="DS" else random_sampling if sampling=="RS" else "non"
+        acq = diversity_sampling if "DS" in sampling else random_sampling if sampling=="RS" else "non"
         sampling_size = int(sqrt(len(d.rows))) 
         random.shuffle(d.rows) 
         ## K-Fold Cross Validation
         for samples,test in xval(d.rows):
             t0 = time.time()
-            if acq in ["DS", "RS"]:
-                train, _ = d.clone(samples).activeLearning(acquisition = sampling, stop = sampling_size)
+            if sampling in ["DS", "DS2", "RS"]:
+                if acq == "DS2":
+                    train, _ = d.clone(samples).activeLearning(acquisition = acq, stop = sampling_size, warm = "kmeans")
+                else:
+                    train, _ = d.clone(samples).activeLearning(acquisition = acq, stop = sampling_size)
             else:
                 train = samples
             t1 = time.time()
@@ -190,7 +193,6 @@ def regression(dataset):
         abs_res += [c]
     
     return noabs_res, abs_res, d2h_res
-
 
 dataset = sys.argv[1]
 noabs , abs, d2h = regression(dataset)
