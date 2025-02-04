@@ -27,15 +27,18 @@ directory = os.getcwd()
 
 first = True
 lst = []
+se = 1
 ###  num/cat = Numeric to Categorical Ratio
 ###  WIR = Worst Imbalance Ratio
 ###  WDST = Worst Distribution : m2/sd
-lst.append(["Dataset Name","xcols","ycols","rows", "dimension", "cat/numX", "cat/numY", "WIRX", "WIRY", "WDSTX", "WDSTY"])
+lst.append(["Dataset Name","SE","xcols","ycols","rows", "dimension", "cat/numX", "cat/numY", "WIRX", "WIRY", "WDSTX", "WDSTY"])
 for dir in os.listdir(f"{directory}/data/optimize/"):
     for dataset in os.listdir(f"{directory}/data/optimize/{dir}"):
+        if dir=='misc': se=0 
+        else: se = 1
         if dataset[-4:]=='.csv':
             d = DATA().adds(csv(f"{directory}/data/optimize/{dir}/{dataset}"))
-            lst.append([dataset[:-4], len(d.cols.x), len(d.cols.y), len(d.rows), round(len(d.rows)/len(d.cols.all),2), cat_ratio(d.cols.x), cat_ratio(d.cols.y), wir(d.cols.x), wir(d.cols.y), wd(d.cols.x), wd(d.cols.y)])
+            lst.append([dataset[:-4], se,len(d.cols.x), len(d.cols.y), len(d.rows), round(len(d.rows)/len(d.cols.all),2), cat_ratio(d.cols.x), cat_ratio(d.cols.y), wir(d.cols.x), wir(d.cols.y), wd(d.cols.x), wd(d.cols.y)])
         print(dataset, "done!")
             
 print("Derived!")
